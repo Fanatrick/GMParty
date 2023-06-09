@@ -20,7 +20,8 @@
 - Effectors - attractors, destructors, painters, colliders, custom processors
 - Collider shapes - spheres, boxes, cylinders, sprites
 - Additional particle flags and common built-in behavior
-- VRAM management - Party will automatically upscale/downscale and rearrange memory buffers of living solvers
+- VRAM management - Party solvers can automatically rescale and rearrange their memory buffers
+- State snapshots
 - Physics
 
 **Party** currently does not support:
@@ -35,6 +36,15 @@
   - **surface_rgba16float** or **surface_rgba32float** surface formats
   - Texture lookups for vertex shaders
   - [GMD3D11.dll](https://github.com/blueburncz/GMD3D11) is included, enabling VTF on Windows
+
+## Known issues
+
+- Behavior of GPU particles deviates from their standard CPU counterparts in some areas
+- Distribution can be wrong depending on device/platform
+- Missing **clear()** methods for **GMPartyType** and **GMPartyWrapper**
+- Shader uniforms should be cached for performance
+- In 3d, view matrix needs to be reapplied after **GMPartySolver** calls
+- Particle component processing sequence is not guaranteed
 
 ## Credits
 
