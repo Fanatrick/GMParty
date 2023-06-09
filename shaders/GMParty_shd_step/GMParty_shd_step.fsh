@@ -8,7 +8,6 @@ const float flagSizeAllowNegative = 4.;
 const float flagWiggleAdditive = 8.;
 const float flagWiggleRangeSymmetry = 16.;
 const float flagWiggleOscillate = 32.;
-const float flagBlendAdditive = 64.;
 
 float getFlag(float flags, float flag) {
     highp float result = float(mod(floor(flags / flag), 2.0) > 0.0);

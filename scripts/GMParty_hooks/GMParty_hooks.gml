@@ -1,5 +1,4 @@
 /// Feather disable all
-#macro trace show_debug_message
 //------------------------------------------------------------//
 // overrides
 #macro part_system_exists					__part_system_exists
