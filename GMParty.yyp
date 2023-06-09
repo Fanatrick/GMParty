@@ -19,7 +19,8 @@
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"hooks","folderPath":"folders/GMParty/hooks.yy",},
   ],
   "IncludedFiles": [
-    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"GMD3D11.dll","CopyToMask":64,"filePath":"datafiles",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"GMD3D11.dll","CopyToMask":64,"filePath":"datafiles/GMD3D11",},
+    {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"LICENSE","CopyToMask":-1,"filePath":"datafiles/GMD3D11",},
   ],
   "isEcma": false,
   "LibraryEmitters": [],

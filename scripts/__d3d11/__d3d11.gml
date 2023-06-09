@@ -1,6 +1,6 @@
 /// @macro {String} Path to the GMD3D11 dynamic library.
 /// Default value is "GMD3D11.dll".
-#macro GMD3D11_PATH "GMD3D11.dll"
+#macro GMD3D11_PATH "GMD3D11/GMD3D11.dll"
 
 /// @macro {Bool} Expands to `true` if GMD3D11 is supported on the current
 /// platform.

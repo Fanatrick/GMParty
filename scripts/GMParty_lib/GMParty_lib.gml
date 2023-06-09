@@ -382,7 +382,6 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		surface_reset_target();
 		gpu_pop_state();
 		swap();
-		trace(string("Realloc from {0} to {1} @{2}", _ctexsize, surfaceTexSize, current_time));
 		countTell = count;
 		countMax = _alloc;
 		countMaxEffective = surfaceSlotSize * surfaceSlotSize;
