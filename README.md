@@ -43,8 +43,9 @@
 - Distribution can be wrong depending on device/platform
 - Missing **clear()** methods for **GMPartyType** and **GMPartyWrapper**
 - Shader uniforms should be cached for performance
-- In 3d, view matrix needs to be reapplied after **GMPartySolver** calls
 - Particle component processing sequence is not guaranteed
+- In 3d, view matrix needs to be reapplied after **GMPartySolver** calls
+- 3d renderer is not included
 
 ## Credits
 
