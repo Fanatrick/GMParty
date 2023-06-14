@@ -1,4 +1,8 @@
 /// Feather disable all
+#macro GMPARTY_UTILS_SDF3D (true)
+#macro GMPARTY_UTILS_SDF3D_PATH "SDF3D/sdf3d.dll"
+
+#macro trace show_debug_message
 
 enum e_vertexComponent {
 	Position2d,
@@ -69,6 +73,49 @@ function gmpartyUtils() {
 				self.vformatMapRef[$ _key] = _format;
 			}
 			return _format;
+		},
+		vformatSizeof : function(_component) {
+			switch(_component) {
+				case e_vertexComponent.Position2d:
+					return 8;
+				case e_vertexComponent.Position3d:
+					return 12;
+				case e_vertexComponent.Color:
+					return 4;
+				case e_vertexComponent.Texcoord:
+					return 8;
+				case e_vertexComponent.Normal:
+					return 12;
+				case e_vertexComponent.Float1:
+					return 4;
+				case e_vertexComponent.Float2:
+					return 8;
+				case e_vertexComponent.Float3:
+					return 12;
+				case e_vertexComponent.Float4:
+					return 16;
+				case e_vertexComponent.Ubyte4:
+					return 4;
+				default:
+					break;
+			}
+		},
+		vformatGetSize : function(_format_array) {
+			var _len = array_length(_format_array);
+			for(var i = 0, j = 0; i < _len; i ++) {
+				j += self.vformatSizeof(_format_array[i]);
+			}
+			return j;
+		},
+		vformatGetOffset : function(_format_array, _component) {
+			var _len = array_length(_format_array);
+			for(var i = 0, j = 0; i < _len; i ++) {
+				if _format_array[i] == _component {
+					break;
+				}
+				j += self.vformatSizeof(_format_array[i]);
+			}
+			return j;
 		},
 		//------------------------------------------------------------//
 		// Surfaces
@@ -487,7 +534,78 @@ function gmpartyUtils() {
 				return (_max - (_min - _x) % (_max - _min));
 			}
 			return (_min + (_x - _min) % (_max - _min));
-		}
+		},
+		//------------------------------------------------------------//
+		// SDF3D
+		sdf3d_buffer : function(_vbuffer, _vformat_array, _texsize, _raynum = 1) {
+			static __seed_buffer = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_buffer",
+				dll_cdecl,
+				ty_real,
+				4,
+				ty_string,
+				ty_real,
+				ty_string,
+				ty_real
+			);
+			static __seed_config = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_config",
+				dll_cdecl,
+				ty_real,
+				3,
+				ty_real,
+				ty_real,
+				ty_real
+			);
+			static __seed_result_json = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_result_json",
+				dll_cdecl,
+				ty_string,
+				0
+			);
+			var _vbsize = vertex_get_buffer_size(_vbuffer),
+				_vcount = vertex_get_number(_vbuffer),
+				_pos = self.vformatGetOffset(e_vertexComponent.Position3d);
+			if _vcount mod 3 != 0 {
+				// vbuffer not a list of triangles
+				return undefined;
+			}
+			var _vfsize = _vbsize / _vcount,
+				_vfoffset = self.vformatGetOffset(_vformat_array, e_vertexComponent.Position3d),
+				_tris = _vcount div 3;
+			if _vfoffset >= _vfsize {
+				return undefined;
+			}
+			
+			var _buffer = buffer_create_from_vertex_buffer(_vbuffer, buffer_fixed, 4);
+			buffer_set_used_size(_buffer, _vbsize);
+			var _target = buffer_create(_texsize * _texsize * 4 * 4, buffer_fixed, 4);
+			buffer_set_used_size(_target, _texsize * _texsize * 4 * 4);
+			
+			external_call(__seed_config, _vfsize div 4, _vfoffset div 4, _raynum);
+			var _seeded = external_call(__seed_buffer, string(buffer_get_address(_buffer)), _tris*3*3, string(buffer_get_address(_target)), _texsize);
+			var _json = external_call(__seed_result_json);
+			
+			var _json = json_parse(_json);
+			
+			if !_seeded {
+				buffer_delete(_buffer);
+				buffer_delete(_target);
+				return undefined;
+			}
+			
+			var _surf = surface_create(_texsize, _texsize, surface_rgba32float);
+			buffer_set_surface(_target, _surf, 0);
+			_json.surface = _surf;
+			
+			buffer_delete(_buffer);
+			buffer_delete(_target);
+			
+			return _json;
+		},
 	}
 	return __inner;
 }

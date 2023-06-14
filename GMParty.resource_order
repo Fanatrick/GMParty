@@ -4,10 +4,12 @@
     {"name":"gpu","order":1,"path":"folders/GMParty/gpu.yy",},
     {"name":"Tools","order":1,"path":"folders/GMParty/gpu/Tools.yy",},
     {"name":"hooks","order":2,"path":"folders/GMParty/hooks.yy",},
+    {"name":"TEST","order":2,"path":"folders/TEST.yy",},
   ],
   "ResourceOrderSettings": [
     {"name":"GMParty_shd_glconstants","order":1,"path":"shaders/GMParty_shd_glconstants/GMParty_shd_glconstants.yy",},
     {"name":"GMParty_shd_jfafin","order":4,"path":"shaders/GMParty_shd_jfafin/GMParty_shd_jfafin.yy",},
+    {"name":"Object3","order":1,"path":"objects/Object3/Object3.yy",},
     {"name":"GMParty_effshd_paint","order":3,"path":"shaders/GMParty_effshd_paint/GMParty_effshd_paint.yy",},
     {"name":"GMParty_tex_glconstants_vtf","order":3,"path":"sprites/GMParty_tex_glconstants_vtf/GMParty_tex_glconstants_vtf.yy",},
     {"name":"GMParty_effshd_processor","order":4,"path":"shaders/GMParty_effshd_processor/GMParty_effshd_processor.yy",},
