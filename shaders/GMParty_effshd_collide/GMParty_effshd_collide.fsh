@@ -124,7 +124,7 @@ vec3 ftexf3d(vec3 _ppos, vec3 _spos, vec3 _start, vec3 _end, vec2 _tsize, vec3 _
 	//	mix(_jump_ceil.y, _jump.y, fract(_tp.y)),
 	//	mix(_jump_ceil.z, _jump.z, fract(_tp.z))
 	//);
-	_jump = rotateXYZ(_jump, _rot);
+	_jump = rotateXYZ(_jump, -_rot);
 	return _jump;//(normalize(_jump) * (length(_jump)-1.0)) * float(length(_jump) > 0.0);
 }
 
