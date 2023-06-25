@@ -27,8 +27,8 @@ part.flags |= e_gmpartyPartFlag.Is3d;
 emitter = new GMPartyWrapper();
 emitter.emitType = e_gmpartyEmitShape.Box;
 emitter.emitFire = e_gmpartyEmitFire.Relative;
-emitter.xpos = { min : -50, max : 50 };
-emitter.ypos = { min : -50, max : 50 };
+emitter.xpos = { min : -500, max : 500 };
+emitter.ypos = { min : -500, max : 500 };
 emitter.zpos = { min : -1500, max : -1000 };
 emitter.ydir = { min : -180, max : 180};
 emitter.gravityIntensity = { min : 0.5, max : 0.5 };
@@ -51,7 +51,7 @@ model_vb = vertex_create_buffer_from_buffer(model_buff, utils.vformatCache(model
 model_sdf = utils.sdf3dCreate(model_vb, model_vf, 8192);
 trace(model_sdf);
 
-collider0 = new GMPartyColliderSDF3D(model_sdf, 0, 0, -300);
+collider0 = new GMPartyColliderSDF3D(model_sdf, 0, 256, -300);
 effector0 = new GMPartyEffectorCollider();
 //destructor0 = new GMPartyEffectorDestructor(5);
 part.componentSet("some_component", effector0, collider0);

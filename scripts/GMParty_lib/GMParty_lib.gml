@@ -1115,7 +1115,7 @@ function GMPartyColliderSDF3D(_sdf_data, _x, _y, _z) : GMPartyColliderPrototype(
 	yscale = 50;
 	zscale = 50;
 	
-	rotation = [0, 0, 180];
+	rotation = [0, 0, 0];
 	
 	static bindColliderUniforms = function() {
 		var _shader = shader_current();
