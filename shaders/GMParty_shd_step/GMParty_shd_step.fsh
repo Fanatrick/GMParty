@@ -8,10 +8,11 @@ const float flagSizeAllowNegative = 4.;
 const float flagWiggleAdditive = 8.;
 const float flagWiggleRangeSymmetry = 16.;
 const float flagWiggleOscillate = 32.;
+const float flagIs3d = 64.;
+const float flagIsLookat = 128.;
 
 float getFlag(float flags, float flag) {
-    highp float result = float(mod(floor(flags / flag), 2.0) > 0.0);
-    return result;
+    return float(mod(floor(flags / flag), 2.0) > 0.0);
 }
 
 // Gold Noise ©2015 dcerisano@standard3d.com
@@ -51,23 +52,28 @@ vec3 normalizeSafe(vec3 invec) {
 	return (length(invec) > 0.0) ? normalize(invec) : vec3(1.,0.,0.);
 }
 
-mat3 rotateX(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3( vec3(1, 0, 0), vec3(0, c, -s), vec3(0, s, c) );
+vec3 rotQuat(vec3 vector, vec4 quat) {
+  vec3 t = 2.0 * cross(quat.xyz, vector);
+  return (vector + quat.w * t + cross(quat.xyz, t));
 }
-mat3 rotateY(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3( vec3(c, 0, s), vec3(0, 1, 0), vec3(-s, 0, c) );
+vec4 mulQuat(vec4 a, vec4 b) {
+  return vec4(
+    a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz),
+    a.w * b.w - dot(a.xyz, b.xyz)
+  );
 }
-mat3 rotateZ(float theta) {
-    float c = cos(theta);
-    float s = sin(theta);
-    return mat3( vec3(c, -s, 0), vec3(s, c, 0), vec3(0, 0, 1) );
+vec4 getRotQuat(float angle, vec3 axis) {
+	float halff = radians(angle) * .5;
+	return vec4(normalize(axis) * sin(halff), cos(halff));
+}
+vec4 getRotQuatXYZ(float pitch, float yaw, float roll) {
+	vec4 pitchQuaternion = getRotQuat(pitch, vec3(1.0, 0.0, 0.0) );
+	vec4 yawQuaternion = getRotQuat(yaw, vec3(0.0, 1.0, 0.0) );
+	vec4 rollQuaternion = getRotQuat(roll, vec3(0.0, 0.0, 1.0) );
+	return mulQuat(pitchQuaternion, mulQuat(rollQuaternion, yawQuaternion));
 }
 vec3 rotateXYZ(vec3 point, vec3 thetas) {
-	return point * rotateX(thetas.x) * rotateY(thetas.y) * rotateZ(thetas.z);
+	return rotQuat(point, getRotQuatXYZ(thetas.x, thetas.y, thetas.z));
 }
 
 const float PI = 3.14159265359;
@@ -101,7 +107,7 @@ vec4 calcSpeed(in float ind, in vec2 uvs, in float seed, in float flags) {
 		randomRange(vec2(-rot_wiggle.z * rot_lower_limit, rot_wiggle.z), vec2(ind, 11.3), seed)
 	) * float(getFlag(flags, flagWiggleAdditive)) + rot;
 	
-	spd_normal = rotateXYZ(spd_normal, radians(rot_total) );
+	spd_normal = rotateXYZ(spd_normal, (rot_total) );
 	
 	return vec4(spd_normal * spd_d, spd_d);
 }
@@ -162,11 +168,14 @@ void main() {
 		vec3 val_delta = lookup(indexUVs, 8.0, gm_BaseTexture).xyz; // read orientation delta
 		vec3 val_wiggle = lookup(indexUVs, 9.0, gm_BaseTexture).xyz; // read orientation wiggle
 		
-		float ang = 180.0 * atan(val_spd.y, val_spd.x) / PI;
+		vec3 val_ns = normalize(val_spd);
+		float pitch = -degrees(asin(dot(normalize(val_spd), vec3(0.0, 0.0, 1.0))));
+		float yaw = degrees(atan(val_spd.y, val_spd.x));
+		
 		pack.xyz = mix(
 			pack.xyz,
-			vec3(ang, pack.yz),
-			(lookup(indexUVs, 7.0, gm_BaseTexture).w) * float(length(val_spd) > 0.0)
+			vec3(pitch, yaw, pack.z),
+			(lookup(indexUVs, 7.0, gm_BaseTexture).w) * float(length(val_spd) > 1.0)
 		);
 		
 		float val_lower_limit = float(getFlag(pflags, flagWiggleRangeSymmetry));

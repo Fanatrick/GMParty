@@ -9,6 +9,7 @@ uniform vec4 ugmpShapeCTX3;				//
 uniform sampler2D ugmpShapeCTXSampler;	//
 uniform vec2 ugmpShapeCTXSamplerSize;	//
 uniform vec4 ugmpShapeCTXSamplerUVs;	//
+uniform mat3 ugmpShapeCTXMat3;			//
 
 uniform vec2 ugmpParticleTypeRange;		//
 
@@ -18,6 +19,17 @@ vec4 lookup(in vec2 _uvs, in float _slot, in sampler2D _tex) {
 	vec2 _offset = vec2(mod(_slot, ugmpSize.z), floor(_slot / ugmpSize.z)) * (1.0 / ugmpSize.z);
 	return texture2D(_tex, _uvs + _offset);
 }
+vec4 sdf3dSample(vec3 pos, vec2 _tsize, vec3 _volume) {
+	if(	(clamp(pos.x, 0.0, _volume.x) != pos.x)
+	||	(clamp(pos.y, 0.0, _volume.y) != pos.y)
+	||	(clamp(pos.z, 0.0, _volume.z) != pos.z)) {
+		return vec4(0.0);
+	}
+	float size = _tsize.x;
+	float index = pos.x + pos.y * (_volume.x) + pos.z * (_volume.y*_volume.x);
+	vec2 uvs = vec2(mod(index, (size) ), floor(index / (size) )) / size;
+	return texture2D(ugmpShapeCTXSampler, uvs);
+}
 
 //------------------------------------------------------------//
 // Colliders
@@ -26,6 +38,7 @@ vec4 lookup(in vec2 _uvs, in float _slot, in sampler2D _tex) {
 #define C_CYLINDER		2
 #define C_PILL			3
 #define C_TEX2D			4
+#define C_FAUX_TEX3D	5
 
 vec3 fbox(vec3 _ppos, vec3 _start, vec3 _end, vec2 _minmax) {
 	vec3 _center = (_start + _end) * 0.5;
@@ -71,6 +84,13 @@ vec3 ftex2d(vec3 _ppos, vec3 _spos, vec4 _offs, vec4 _uvs, vec2 _scale, float _r
 	_jump *= float( (clamp(_tpos.x, 0.0, 1.0) == _tpos.x) ) * float( (clamp(_tpos.y, 0.0, 1.0) == _tpos.y) );
 	return vec3((_jump * mat2(cos(-_rot), -sin(-_rot), sin(-_rot), cos(-_rot))) * _scale, 0.0);
 }
+vec3 ftexf3d(vec3 _ppos, vec3 _spos, vec3 _start, vec3 _end, vec2 _tsize, vec3 _volume, mat3 _rotmat) {
+	vec3 _line = (_ppos - _spos) * _rotmat;
+	vec3 _rpos = _spos + _line;
+	vec3 _tpos = (_rpos - (_spos + _start)) / (_start - _end);
+	vec3 _jump = sdf3dSample(_tpos, _tsize, _volume).xyz;
+	return _jump * (length(_end - _start) / length(_volume));
+}
 
 vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
 	if (ugmpShapeType == C_BOX) {
@@ -87,6 +107,9 @@ vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
 	}
 	else if (ugmpShapeType == C_TEX2D) {
 		return ftex2d(_point, vec3(_ctx1.xy, 0.0), _ctx2, ugmpShapeCTXSamplerUVs, _ctx1.zw, ugmpShapeCTX3.x) / mix(vec3(1.0), vec3(ugmpShapeCTXSamplerSize * (ugmpShapeCTXSamplerUVs.zw - ugmpShapeCTXSamplerUVs.xy) * _ctx1.zw, 1.0), float(_ddist < 0.5)) * _ctx3.w;
+	}
+	else if (ugmpShapeType == C_FAUX_TEX3D) {
+		return ftexf3d(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.xyz, ugmpShapeCTXSamplerSize.xy, ugmpShapeCTXSamplerUVs.xyz, ugmpShapeCTXMat3) / mix(vec3(1.0), vec3(ugmpShapeCTXSamplerUVs.xyz), float(_ddist < 0.5)) * _ctx3.w;
 	}
 	return vec3(1.0);
 }

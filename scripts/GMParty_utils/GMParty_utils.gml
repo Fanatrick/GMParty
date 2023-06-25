@@ -316,6 +316,149 @@ function gmpartyUtils() {
 			}
 		},
 		//------------------------------------------------------------//
+		// SDF3D
+		sdf3dCreate : function(_vbuffer, _vformat_array, _texsize, _wrt = true) {
+			static __seed_buffer = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_buffer",
+				dll_cdecl,
+				ty_real,
+				4,
+				ty_string,
+				ty_real,
+				ty_string,
+				ty_real
+			);
+			static __seed_config = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_config",
+				dll_cdecl,
+				ty_real,
+				3,
+				ty_real,
+				ty_real,
+				ty_real
+			);
+			static __seed_result_json = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_result_json",
+				dll_cdecl,
+				ty_string,
+				0
+			);
+			var _vbsize = vertex_get_buffer_size(_vbuffer),
+				_vcount = vertex_get_number(_vbuffer),
+				_pos = self.vformatGetOffset(e_vertexComponent.Position3d);
+			if _vcount mod 3 != 0 {
+				// vbuffer not a list of triangles
+				return undefined;
+			}
+			var _vfsize = _vbsize / _vcount,
+				_vfoffset = self.vformatGetOffset(_vformat_array, e_vertexComponent.Position3d),
+				_tris = _vcount div 3;
+			if _vfoffset >= _vfsize {
+				return undefined;
+			}
+			
+			var _buffer = buffer_create_from_vertex_buffer(_vbuffer, buffer_fixed, 4);
+			buffer_set_used_size(_buffer, _vbsize);
+			var _target = buffer_create(_texsize * _texsize * 4 * 4, buffer_fixed, 4);
+			buffer_set_used_size(_target, _texsize * _texsize * 4 * 4);
+			
+			external_call(__seed_config, _vfsize div 4, _vfoffset div 4, 0);
+			var _seeded = external_call(__seed_buffer, string(buffer_get_address(_buffer)), _vbsize div 4, string(buffer_get_address(_target)), _texsize);
+			var _json = external_call(__seed_result_json);
+			
+			var _json = json_parse(_json);
+			
+			if _seeded < 0 {
+				buffer_delete(_buffer);
+				buffer_delete(_target);
+				return undefined;
+			}
+			
+			var _surf = surface_create(_texsize, _texsize, surface_rgba32float);
+			buffer_set_surface(_target, _surf, 0);
+			_json.surface = _surf;
+			_json.voxels = _seeded;
+			_json.texture_size = _texsize;
+			//_json.
+			
+			var _output = self.sdf3dBake(_json);
+			
+			_json.surface = _output;
+			
+			buffer_delete(_buffer);
+			buffer_delete(_target);
+			
+			return _json;
+		},
+		sdf3dBake : function(_seed_dat) {
+			var _surf = _seed_dat.surface,
+				_sw = surface_get_width(_surf),
+				_sh = surface_get_width(_surf),
+				_pong = surface_create(_sw, _sh, surface_rgba32float);
+			var _bbox = _seed_dat.bbox,
+				_size = [_seed_dat.xlen, _seed_dat.ylen, _seed_dat.zlen];
+			gpu_push_state();
+			gpu_set_blendmode_ext_sepalpha(bm_one, bm_zero, bm_one, bm_zero);
+			
+			// erode
+			var _shader = GMParty_shd_sdf3d_erode;
+			self.shaderPush(_shader);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpSdf3dSize"), _sw, _sh);
+			shader_set_uniform_f_array(shader_get_uniform(_shader, "ugmpSdf3dVolume"), _size);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpSdf3dErode"), 6);
+			surface_set_target(_pong);
+			draw_surface(_surf, 0, 0);
+			surface_reset_target();
+			self.shaderPop();
+			
+			// extrude
+			var _shader = GMParty_shd_sdf3d_extrude;
+			self.shaderPush(_shader);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpSdf3dSize"), _sw, _sh);
+			shader_set_uniform_f_array(shader_get_uniform(_shader, "ugmpSdf3dVolume"), _size);
+			surface_set_target(_surf);
+			draw_surface(_pong, 0, 0);
+			surface_reset_target();
+			surface_set_target(_pong);
+			draw_surface(_surf, 0, 0);
+			surface_reset_target();
+			self.shaderPop();
+			
+			// jfa
+			_shader = GMParty_shd_sdf3d_jfa; //GMParty_shd_jfastep
+			self.shaderPush(_shader);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpSdf3dSize"), _sw, _sh);
+			shader_set_uniform_f_array(shader_get_uniform(_shader, "ugmpSdf3dVolume"), _size);
+			for(var i = 1, j = ceil(log2(max(_size[0], _size[1], _size[2]))); i <= j; i ++) { // max(_size[0], _size[1], _size[2], 
+				surface_set_target(_pong);
+				shader_set_uniform_f(shader_get_uniform(_shader, "ugmpOffset"), power(2, j-i) );
+				draw_surface(_surf, 0, 0);
+				surface_reset_target();
+				var _sref = _pong;
+				_pong = _surf;
+				_surf = _sref;
+			}
+			self.shaderPop();
+			
+			// finalize
+			_shader = GMParty_shd_sdf3d_end;
+			self.shaderPush(_shader);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpSdf3dSize"), _sw, _sh);
+			shader_set_uniform_f_array(shader_get_uniform(_shader, "ugmpSdf3dVolume"), _size);
+			surface_set_target(_surf);
+			draw_surface(_pong, 0, 0);
+			surface_reset_target();
+			self.shaderPop();
+			// free, pop, return
+			surface_free(_pong);
+			gpu_pop_state();
+			
+			return _surf;
+		},
+		//------------------------------------------------------------//
 		// Textures
 		texdataLookupTable : {},
 		texdataLookup : function(_sprite) {
@@ -534,77 +677,6 @@ function gmpartyUtils() {
 				return (_max - (_min - _x) % (_max - _min));
 			}
 			return (_min + (_x - _min) % (_max - _min));
-		},
-		//------------------------------------------------------------//
-		// SDF3D
-		sdf3d_buffer : function(_vbuffer, _vformat_array, _texsize, _raynum = 1) {
-			static __seed_buffer = external_define(
-				GMPARTY_UTILS_SDF3D_PATH,
-				"seed_buffer",
-				dll_cdecl,
-				ty_real,
-				4,
-				ty_string,
-				ty_real,
-				ty_string,
-				ty_real
-			);
-			static __seed_config = external_define(
-				GMPARTY_UTILS_SDF3D_PATH,
-				"seed_config",
-				dll_cdecl,
-				ty_real,
-				3,
-				ty_real,
-				ty_real,
-				ty_real
-			);
-			static __seed_result_json = external_define(
-				GMPARTY_UTILS_SDF3D_PATH,
-				"seed_result_json",
-				dll_cdecl,
-				ty_string,
-				0
-			);
-			var _vbsize = vertex_get_buffer_size(_vbuffer),
-				_vcount = vertex_get_number(_vbuffer),
-				_pos = self.vformatGetOffset(e_vertexComponent.Position3d);
-			if _vcount mod 3 != 0 {
-				// vbuffer not a list of triangles
-				return undefined;
-			}
-			var _vfsize = _vbsize / _vcount,
-				_vfoffset = self.vformatGetOffset(_vformat_array, e_vertexComponent.Position3d),
-				_tris = _vcount div 3;
-			if _vfoffset >= _vfsize {
-				return undefined;
-			}
-			
-			var _buffer = buffer_create_from_vertex_buffer(_vbuffer, buffer_fixed, 4);
-			buffer_set_used_size(_buffer, _vbsize);
-			var _target = buffer_create(_texsize * _texsize * 4 * 4, buffer_fixed, 4);
-			buffer_set_used_size(_target, _texsize * _texsize * 4 * 4);
-			
-			external_call(__seed_config, _vfsize div 4, _vfoffset div 4, _raynum);
-			var _seeded = external_call(__seed_buffer, string(buffer_get_address(_buffer)), _tris*3*3, string(buffer_get_address(_target)), _texsize);
-			var _json = external_call(__seed_result_json);
-			
-			var _json = json_parse(_json);
-			
-			if !_seeded {
-				buffer_delete(_buffer);
-				buffer_delete(_target);
-				return undefined;
-			}
-			
-			var _surf = surface_create(_texsize, _texsize, surface_rgba32float);
-			buffer_set_surface(_target, _surf, 0);
-			_json.surface = _surf;
-			
-			buffer_delete(_buffer);
-			buffer_delete(_target);
-			
-			return _json;
 		},
 	}
 	return __inner;

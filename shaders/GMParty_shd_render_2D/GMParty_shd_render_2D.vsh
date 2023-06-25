@@ -26,17 +26,19 @@ uniform vec4 ugmpTextureSize1;
 uniform vec4 ugmpTextureSize2;
 uniform vec4 ugmpTextureSize3;
 
+uniform vec3 ugmpCamLookat;
+
 const float flagSpeedAllowNegative = 1.;
 const float flagSpeedInvertDelta = 2.;
 const float flagSizeAllowNegative = 4.;
 const float flagWiggleAdditive = 8.;
 const float flagWiggleRangeSymmetry = 16.;
 const float flagWiggleOscillate = 32.;
+const float flagIs3d = 64.;
+const float flagIsLookat = 128.;
 
 float getFlag(float flags, float flag) {
-    float result = float(mod(floor(flags / flag), 2.0) > 0.0);
-	//int(mod(float(flags / int(pow(2.0, float(flagIndex)))), 2.));
-    return result;
+    return float(mod(floor(flags / flag), 2.0) > 0.0);
 }
 
 // Gold Noise ©2015 dcerisano@standard3d.com
@@ -77,6 +79,43 @@ vec3 colMix(in vec4 cols, in float ls) {
 }
 vec3 normalizeSafe(vec3 invec) {
 	return (length(invec) > 0.0) ? normalize(invec) : vec3(1.,0.,0.);
+}
+
+vec3 rotQuat(vec3 vector, vec4 quat) {
+  vec3 t = 2.0 * cross(quat.xyz, vector);
+  return (vector + quat.w * t + cross(quat.xyz, t));
+}
+vec4 mulQuat(vec4 a, vec4 b) {
+  return vec4(
+    a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz),
+    a.w * b.w - dot(a.xyz, b.xyz)
+  );
+}
+vec4 getRotQuat(float angle, vec3 axis) {
+	float halff = radians(angle) * .5;
+	return vec4(normalize(axis) * sin(halff), cos(halff));
+}
+vec4 eulerToQuat(float pitch, float yaw, float roll) {
+  float pitchRad = radians(pitch);
+  float yawRad = radians(yaw);
+  float rollRad = radians(roll);
+
+  float cy = cos(yawRad * 0.5);
+  float sy = sin(yawRad * 0.5);
+  float cp = cos(pitchRad * 0.5);
+  float sp = sin(pitchRad * 0.5);
+  float cr = cos(rollRad * 0.5);
+  float sr = sin(rollRad * 0.5);
+
+  float qx = cy * cp * sr - sy * sp * cr;
+  float qy = sy * cp * sr + cy * sp * cr;
+  float qz = sy * cp * cr - cy * sp * sr;
+  float qw = cy * cp * cr + sy * sp * sr;
+
+  return vec4(qx, qy, qz, qw);
+}
+vec3 rotateXYZ(vec3 point, vec3 thetas) {
+	return rotQuat(point, eulerToQuat(thetas.x, thetas.y, thetas.z) );
 }
 
 vec4 lookup(in vec2 _uvs, in float _slot) {
@@ -135,7 +174,7 @@ void main() {
 		) * (1.0 - getFlag(pflags, flagWiggleAdditive));
 	}
 	
-	vec3 p_rot = radians(lookup(puv, 7.0).xyz);
+	vec3 p_rot = (lookup(puv, 7.0).xyz);
 	vec3 p_rot_wiggle = lookup(puv, 9.0).xyz;
 	if (getFlag(pflags, flagWiggleOscillate) > 0.0) {
 		p_rot.x += (
@@ -149,10 +188,23 @@ void main() {
 		) * (1.0 - getFlag(pflags, flagWiggleAdditive));
 	}
 	
-	vec4 offset = ugmpImageOffset * vec4(p_scale.xy, p_scale.xy) * p_scale.w;
-	vec2 corner = vec2(mix(offset.x, offset.z, in_Position.x), mix(offset.y, offset.w, in_Position.y));
-	corner = vec2(cos(p_rot.x) * corner.x - sin(p_rot.x) * corner.y, sin(p_rot.x) * corner.x + cos(p_rot.x) * corner.y);
-	vec4 translate = vec4(corner, 0.0, 1.0);
+	vec4 offset = ugmpImageOffset * p_scale.xyxy * p_scale.w;
+	vec3 corner = vec3(mix(offset.x, offset.z, in_Position.x), mix(offset.y, offset.w, in_Position.y), 0.0);
+	
+	vec4 translate = vec4(rotateXYZ(corner, vec3(p_rot.x, p_rot.y, p_rot.z) ), 1.0);
+	translate = mix(vec4(cos(p_rot.x) * corner.x - sin(p_rot.x) * corner.y, sin(p_rot.x) * corner.x + cos(p_rot.x) * corner.y, 0.0, 1.0), translate, getFlag(pflags, flagIs3d));
+	
+	vec3 lookat = normalize(ugmpCamLookat);
+	vec3 up = vec3(0.0, 0.0, 1.0);
+	vec3 right = normalize(cross(up, lookat));
+	up = cross(lookat, right);
+	mat3 viewmat = mat3(
+		right.x, up.x, lookat.x,
+		right.y, up.y, lookat.y,
+		right.z, up.z, lookat.z
+	);
+	translate = mix(translate, vec4(corner * viewmat, 1.0), getFlag(pflags, flagIsLookat));
+	
 	gl_Position = gm_Matrices[MATRIX_WORLD_VIEW_PROJECTION] * vec4( p_pos + translate.xyz, 1.0);
 	// image, texture
 	vec4 p_img = lookup(puv, 12.0);

@@ -352,7 +352,11 @@ function __part_type_gravity(_ind, _grav_amount, _grav_dir) {
 	var _grav = _ind.componentGet("gmlstd_gravity");
 	if is_undefined(_grav) {
 		var _eff = new GMPartyEffectorAccelerator(lengthdir_x(_grav_amount, _grav_dir), lengthdir_y(_grav_amount, _grav_dir), 0);
-		var _col = new GMPartyColliderGlobal();
+		//var _col = new GMPartyColliderGlobal();
+		//var _eff = new GMPartyEffectorAccelerator(lengthdir_x(_grav_amount, _grav_dir), lengthdir_y(_grav_amount, _grav_dir), 0.0);
+		var _vf = [e_vertexComponent.Position3d, e_vertexComponent.Normal, e_vertexComponent.Color];
+		var _vb = vertex_create_buffer_from_buffer(buffer_load("tree.vbuff"), gmpartyUtils().vformatCache(spf2));
+		var _col = new GMPartyColliderSDF3D(gmpartyUtils().sdf3dCreate(_vb, _vf, 512));
 		_ind.componentSet("gmlstd_gravity", _eff, _col);
 	} else {
 		_grav.effectorRef.xspeed = lengthdir_x(_grav_amount, _grav_dir);

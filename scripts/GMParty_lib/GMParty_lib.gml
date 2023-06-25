@@ -54,7 +54,9 @@ enum e_gmpartyPartFlag {
 	WiggleAdditive = 8,
 	WiggleRangeSymmetry = 16,
 	WiggleOscillate = 32,
-	BlendAdditive = 64
+	
+	Is3d = 64,			// these two are mutually exclusive
+	IsLookat = 128,
 }
 
 enum e_gmpartyMixing {
@@ -141,6 +143,9 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	static __vbufferWriteList	= __vbufferWriteBakeList();
 	static __vbufferRenderList	= __vbufferRenderBakeList();
 	static __surfaceFormat = surface_rgba32float;	// 16bit currently has color encoding errors
+	static __CamX = 0;
+	static __CamY = 0;
+	static __CamZ = 0;
 	
 	surfaceSlotSize	= __getAllocSize(_num);	// calculate power of 2 slotsize
 	surfaceTexSize	= surfaceSlotSize * GMPARTY_TEXTURE_GRID_SIZE;
@@ -669,6 +674,15 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 			shader_set_uniform_f(shader_get_uniform(_shader, string("ugmpTextureSize{0}", i)), _tex.texture_width, _tex.texture_height, _tex.uv_width, _tex.uv_height);
 		}
 	}
+	/// Updates the camera values needed for 3d projection
+	/// @arg {Real} _cx
+	/// @arg {Real} _cy
+	/// @arg {Real} _cz
+	static renderSetCamera = function(_cx, _cy, _cz) {
+		__CamX = _cx;
+		__CamY = _cy;
+		__CamZ = _cz;
+	}
 	/// Renders the solver, optionally you can pass a custom {_shader} Asset.GMShader.
 	/// @arg {Asset.GMshader} _shader
 	static render = function(_shader=GMParty_shd_render_2D) {
@@ -681,6 +695,8 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 			texBindings = prepTexBindings();
 			texBindingsObsolete = false;
 		}
+		
+		var _thiscam = camera_get_active();
 		var _rbuffer = getRenderBuffer();
 		shader_set(_shader);
 		utils.glShaderStageVS(shader_get_sampler_index(_shader, "ugmpParticleData"), surface_get_texture(getSurfaceParticle()));
@@ -693,6 +709,7 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpBlendMode"), _bmode);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpTime"), countTimer);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpTimeFrequency"), 0.33);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpCamLookat"), __CamX, __CamY, __CamZ);
 		
 		var _len = array_length(texBindings);
 		for(var i = 0; i < _len; i ++) {
@@ -964,7 +981,8 @@ enum e_gmpartyColShape {
 	Sphere,
 	Cylinder,
 	Pill,
-	Texture2D
+	Texture2D,
+	TextureFaux3D
 }
 
 /// @ignore
@@ -1084,6 +1102,36 @@ function GMPartyColliderSDF2D(_spr, _img, _x, _y, _xscale, _yscale, _angle) : GM
 		texture_set_stage(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), surface_get_texture(_sdf));
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerSize"), surface_get_width(_sdf), surface_get_height(_sdf));
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerUVs"),	_uvs[0], _uvs[1], _uvs[2], _uvs[3]);
+	}
+}
+function GMPartyColliderSDF3D(_sdf_data, _x, _y, _z) : GMPartyColliderPrototype() constructor {
+	type = e_gmpartyColShape.TextureFaux3D;
+	
+	sdf_data = _sdf_data;
+	x = _x;
+	y = _y;
+	z = _z;
+	xscale = 50;
+	yscale = 50;
+	zscale = 50;
+	
+	rotation = [0, 0, 180];
+	
+	static bindColliderUniforms = function() {
+		var _shader = shader_current();
+		var _bbox = sdf_data.bbox;
+		var _mult = sdf_data.scale;
+		//rotation[0] = -180 + (current_time / 10) % 360;
+		//rotation[1] = (current_time / 20) % 360;
+		rotation[2] = (current_time / 20) % 360;
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX1"), x, y, z, _mult[0] * xscale);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX2"), _bbox[0][0] * xscale, _bbox[0][1] * yscale, _bbox[0][2] * zscale, _mult[1] * yscale);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX3"), _bbox[1][0] * xscale, _bbox[1][1] * yscale, _bbox[1][2] * zscale, _mult[2] * zscale);
+		shader_set_uniform_f_array(shader_get_uniform(_shader, "ugmpShapeCTX4"), rotation);
+		gpu_set_tex_filter_ext(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), false);
+		texture_set_stage(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), surface_get_texture(sdf_data.surface));
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerSize"), sdf_data.texture_size, sdf_data.texture_size);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerUVs"),	sdf_data.xlen, sdf_data.ylen, sdf_data.zlen, 0);
 	}
 }
 
