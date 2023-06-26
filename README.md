@@ -1,4 +1,6 @@
-![party21](https://github.com/Fanatrick/GMParty/assets/12619098/43c0e26b-b813-4e5b-ab63-984ae1e68667)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/12619098/248749415-43c0e26b-b813-4e5b-ab63-984ae1e68667.gif"/>
+</p>
 
 # GMParty 0.8.3 (experimental)
 **Party** is a modern, 3d particle system for GameMaker. It's simple to use, scalable, extensible, and offers high performance by leveraging the GPU. It can hook itself onto GameMaker's standard particle system, emulating it on the GPU while also providing the user with superpowers.
@@ -35,7 +37,7 @@
 
 - GameMaker version 2023.4 or above
 - Target platform needs to support:
-  - **surface_rgba32float** surface formats
+  - **surface_rgba32float** surface format
   - Texture lookups for vertex shaders
   - [GMD3D11.dll](https://github.com/blueburncz/GMD3D11) is included, enabling VTF on Windows
 
