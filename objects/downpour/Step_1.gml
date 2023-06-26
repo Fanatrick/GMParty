@@ -1,7 +1,10 @@
-//collider0.x = 256 + sin(current_time *.003) * 128;
-//collider0.y = 256 + cos(current_time *.003) * 128;
-emitter.gravityDirection = { x : sin(current_time * 0.)*.2, y : cos(current_time * 0.)*.2, z : 1.0 };
+// Emit 1000 particles of some type, decorating them with an emitter
+solver.emit(part, 1000, emitter);
 
-solver.emit(part, 250, emitter);
+// Process a single step
 solver.process();
 
+// End the game
+if (keyboard_check_direct(vk_escape)) {
+    game_end();
+}

@@ -969,8 +969,8 @@ function GMPartyType() constructor {
 	}
 }
 
-/// Creates a wrapper object that can be passed to override particle type values during emission.
-function GMPartyWrapper() constructor {
+/// Creates a decorator object that can be passed to override particle type values during emission.
+function GMPartyDecorator() constructor {
 	// @TODO
 }
 
@@ -1111,19 +1111,25 @@ function GMPartyColliderSDF3D(_sdf_data, _x, _y, _z) : GMPartyColliderPrototype(
 	x = _x;
 	y = _y;
 	z = _z;
-	xscale = 50;
-	yscale = 50;
-	zscale = 50;
+	xscale = 1;
+	yscale = 1;
+	zscale = 1;
 	
 	rotation = [0, 0, 0];
 	
 	static bindColliderUniforms = function() {
 		var _shader = shader_current();
 		var _bbox = sdf_data.bbox;
-		var _mult = sdf_data.scale;
-		//rotation[0] = -180 + (current_time / 10) % 360;
-		//rotation[1] = (current_time / 20) % 360;
-		//rotation[2] = (current_time / 20) % 360;
+		var _mult = [
+			(_bbox[1][0] - _bbox[0][0]) / sdf_data.xlen,
+			(_bbox[1][1] - _bbox[0][1]) / sdf_data.ylen,
+			(_bbox[1][2] - _bbox[0][2]) / sdf_data.zlen
+		];
+		
+		//rotation[0] = -180 + (current_time / 3) % 360;
+		//rotation[1] = -180 + (current_time / 4) % 360;
+		//rotation[2] = -180 + (current_time / 10) % 360;
+		
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX1"), x, y, z, _mult[0] * xscale);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX2"), _bbox[0][0] * xscale, _bbox[0][1] * yscale, _bbox[0][2] * zscale, _mult[1] * yscale);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX3"), _bbox[1][0] * xscale, _bbox[1][1] * yscale, _bbox[1][2] * zscale, _mult[2] * zscale);

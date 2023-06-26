@@ -31,6 +31,7 @@ impl Triangle {
             nalgebra::Const<1>,
             nalgebra::ArrayStorage<f32, 3, 1>,
         > = coords[2] - coords[0];
+
         let normal: nalgebra::Matrix<
             f32,
             nalgebra::Const<3>,
@@ -392,4 +393,38 @@ pub extern "cdecl" fn seed_buffer(
     globals::set_config(conf);
 
     result as f64
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_seed_buffer() {
+        let mut model: Model = Model::new();
+        model.add_triangle(Triangle::new([
+            Point3::new(0., 0., 0.),
+            Point3::new(1., 0., 0.),
+            Point3::new(0., 1., 0.),
+        ]));
+        model.add_triangle(Triangle::new([
+            Point3::new(0., 0., 0.),
+            Point3::new(0., 1., 0.),
+            Point3::new(0., 0., 1.),
+        ]));
+        model.add_triangle(Triangle::new([
+            Point3::new(0., 0., 0.),
+            Point3::new(0., 0., 1.),
+            Point3::new(1., 0., 0.),
+        ]));
+        model.add_triangle(Triangle::new([
+            Point3::new(1., 0., 0.),
+            Point3::new(0., 0., 1.),
+            Point3::new(0., 1., 0.),
+        ]));
+
+        let mut buffer: [f32; 1000] = [0.; 1000];
+        let result: i32 = framebuffer_seed_model_scanlines(&model, &mut buffer, 10, 10, 10);
+        println!("result: {}", result);
+        println!("buffer: {:?}", buffer);
+    }
 }

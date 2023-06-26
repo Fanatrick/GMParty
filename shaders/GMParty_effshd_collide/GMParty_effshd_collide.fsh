@@ -12,11 +12,13 @@ uniform vec4 ugmpShapeCTX4;				//
 uniform sampler2D ugmpShapeCTXSampler;	//
 uniform vec2 ugmpShapeCTXSamplerSize;	//
 uniform vec4 ugmpShapeCTXSamplerUVs;	//
-uniform mat3 ugmpShapeCTXMat3;			//
 
 uniform vec2 ugmpParticleTypeRange;		//
 
 varying vec2 v_vTexcoord;
+
+const float PI = 3.14159265359;
+const float TAU = 6.28318530718;
 
 vec4 lookup(in vec2 _uvs, in float _slot, in sampler2D _tex) {
 	vec2 _offset = vec2(mod(_slot, ugmpSize.z), floor(_slot / ugmpSize.z)) * (1.0 / ugmpSize.z);
@@ -35,14 +37,14 @@ vec4 sdf3dSample(vec3 pos, vec2 _tsize, vec3 _volume) {
 }
 
 vec3 rotQuat(vec3 vector, vec4 quat) {
-  vec3 t = 2.0 * cross(quat.xyz, vector);
-  return (vector + quat.w * t + cross(quat.xyz, t));
+	vec3 t = 2.0 * cross(quat.xyz, vector);
+	return (vector + quat.w * t + cross(quat.xyz, t));
 }
 vec4 mulQuat(vec4 a, vec4 b) {
-  return vec4(
-    a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz),
-    a.w * b.w - dot(a.xyz, b.xyz)
-  );
+	return vec4(
+		a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz),
+		a.w * b.w - dot(a.xyz, b.xyz)
+	);
 }
 vec4 getRotQuat(float angle, vec3 axis) {
 	float halff = radians(angle) * .5;
@@ -56,6 +58,10 @@ vec4 getRotQuatXYZ(float pitch, float yaw, float roll) {
 }
 vec3 rotateXYZ(vec3 point, vec3 thetas) {
 	return rotQuat(point, getRotQuatXYZ(thetas.x, thetas.y, thetas.z));
+}
+vec3 rotateXYZConjugate(vec3 point, vec3 thetas) {
+	vec4 q = getRotQuatXYZ(thetas.x, thetas.y, thetas.z);
+	return rotQuat(point, vec4(-q.xyz, q.w));
 }
 
 //------------------------------------------------------------//
@@ -112,20 +118,12 @@ vec3 ftex2d(vec3 _ppos, vec3 _spos, vec4 _offs, vec4 _uvs, vec2 _scale, float _r
 	return vec3((_jump * mat2(cos(-_rot), -sin(-_rot), sin(-_rot), cos(-_rot))) * _scale, 0.0);
 }
 vec3 ftexf3d(vec3 _ppos, vec3 _spos, vec3 _start, vec3 _end, vec2 _tsize, vec3 _volume, vec3 _rot, vec3 _mult) {
-	vec3 _line = rotateXYZ(_ppos - _spos, _rot);
+	vec3 _line = rotateXYZ(_ppos - _spos, -_rot);
 	vec3 _rpos = _spos + _line;
 	vec3 _tpos = (_rpos - (_spos + _start)) / abs(_end - _start);
 	vec3 _tp = _tpos*_volume;
-	vec3 _jump = -sdf3dSample(floor(_tp), _tsize, _volume).xyz / _mult;
-	vec3 _jump_ceil = -sdf3dSample(ceil(_tp), _tsize, _volume).xyz / _mult;
-	return mix(_jump, _jump_ceil, 0.5);
-	//_jump = vec3(
-	//	mix(_jump_ceil.x, _jump.x, fract(_tp.x)),
-	//	mix(_jump_ceil.y, _jump.y, fract(_tp.y)),
-	//	mix(_jump_ceil.z, _jump.z, fract(_tp.z))
-	//);
-	_jump = rotateXYZ(_jump, -_rot);
-	return _jump;//(normalize(_jump) * (length(_jump)-1.0)) * float(length(_jump) > 0.0);
+	vec3 _jump = -sdf3dSample(floor(_tp+0.5), _tsize, _volume).xyz / _mult;
+	return rotateXYZConjugate(_jump, -_rot);
 }
 
 vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
@@ -145,7 +143,8 @@ vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
 		return ftex2d(_point, vec3(_ctx1.xy, 0.0), _ctx2, ugmpShapeCTXSamplerUVs, _ctx1.zw, ugmpShapeCTX3.x) / mix(vec3(1.0), vec3(ugmpShapeCTXSamplerSize * (ugmpShapeCTXSamplerUVs.zw - ugmpShapeCTXSamplerUVs.xy) * _ctx1.zw, 1.0), float(_ddist < 0.5)) * _ctx3.w;
 	}
 	else if (ugmpShapeType == C_FAUX_TEX3D) {
-		return ftexf3d(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.xyz, ugmpShapeCTXSamplerSize.xy, ugmpShapeCTXSamplerUVs.xyz, ugmpShapeCTX4.xyz, vec3(ugmpShapeCTX1.w, ugmpShapeCTX2.w, ugmpShapeCTX3.w));// / mix(vec3(1.0), vec3(ugmpShapeCTXSamplerUVs.xyz), float(_ddist < 0.5)) * _ctx3.w;
+		vec3 _scale = vec3(ugmpShapeCTX3.xyz - ugmpShapeCTX2.xyz);
+		return ftexf3d(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.xyz, ugmpShapeCTXSamplerSize.xy, ugmpShapeCTXSamplerUVs.xyz, ugmpShapeCTX4.xyz, vec3(ugmpShapeCTX1.w, ugmpShapeCTX2.w, ugmpShapeCTX3.w)) / mix(vec3(1.0), _scale, float(_ddist < 0.5));//mix(vec3(1.0), vec3(ugmpShapeCTXSamplerUVs.xyz) * _scale * .5, float(_ddist < 0.5));
 	}
 	return vec3(1.0);
 }

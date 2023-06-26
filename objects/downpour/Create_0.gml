@@ -1,68 +1,70 @@
-utils = gmpartyUtils();
+var utils = gmpartyUtils();
 
-z = -928;
-yaw = 0;
-pitch = 0;
+// cam setup
+x = 450;
+y = 1920;
+z = 890;
+yaw = 108;
+pitch = 20;
+init = false;
 
-//gpu_set_ztestenable(true);
-//gpu_set_zwriteenable(true);
+// Create a solver, allocate 100k particles.
+solver = new GMPartySolver(100000);
 
-solver = new GMPartySolver(100000);		// alloc 100k particles
-
+// Create a particle type, edit its fields
 part = new GMPartyType();
 part.sprite	= spr_rain;
 part.image	= { min : 0, max : 0, count : 1};
-part.life	= { min : 150, max : 250}	;
+part.life	= { min : 200, max : 250}	;
 part.size	= { min : 0.4, max : 0.4, delta : 0.0, wiggle : 0.0 };
 part.speed	= { min : 1.0, max : 2.0, delta : 0.0, wiggle : 0.2 };
 part.xdir	= { min : 0.0, max : 0.0 };
 part.ydir	= { min : 0.0, max : 0.0 };
 part.zdir	= { min : 0.0, max : 0.0 };
-//part.xrot	= { min : 2.0, max : 10.0, wiggle : 0.0 };
-//part.yrot	= { min : 1.0, max : 5.0, wiggle : 0.0 };
-//part.zrot	= { min : 2.0, max : 10.0, w<iggle : 0.0 };
+part.xrot	= { min : -0.8, max : 0.8, wiggle : 0.0 };
+part.yrot	= { min : -0.8, max : 0.8, wiggle : 0.0 };
+part.zrot	= { min : -0.8, max : 0.8, wiggle : 0.0 };
+part.restitution = { min : 0.2, max : 0.3 };
 part.snapToDirection = true;
 part.flags |= e_gmpartyPartFlag.Is3d;
 
-emitter = new GMPartyWrapper();
+// Create a decorator which will basically be used as an emitter,
+// overriding existing fields of all particles decorated with it
+// during emission.
+emitter = new GMPartyDecorator();
 emitter.emitType = e_gmpartyEmitShape.Box;
 emitter.emitFire = e_gmpartyEmitFire.Relative;
 emitter.xpos = { min : -500, max : 500 };
 emitter.ypos = { min : -500, max : 500 };
 emitter.zpos = { min : -1500, max : -1000 };
 emitter.ydir = { min : -180, max : 180};
-emitter.gravityIntensity = { min : 0.5, max : 0.5 };
-emitter.gravityDirection = { x : 0.0, y : 0.0, z : 1.0 };
-emitter.restitution = { min : 0.31, max : 0.41 };
+emitter.gravityIntensity = { min : 0.4, max : 0.5 };
+emitter.gravityDirection = { x : 0.2, y : 0.2, z : 1.0 };
 
-//emitter.ydir = { min : -120, max : -120};
-//emitter.yorient = {	min : 90, max : 90, deltaMin : 0, deltaMax : 0, wiggle : 0 };
-//emitter.zorient = {	min : 0, max : 360, deltaMin : 0, deltaMax : 0, wiggle : 0 };
-//emitter.xorient = {	min : -180, max : 180, deltaMin : 1, deltaMax : 3, wiggle : 0 };
-//emitter.yorient = {	min : -180, max : 180, deltaMin : 1, deltaMax : 3, wiggle : 0 };
-//emitter.zorient = {	min : -180, max : 180, deltaMin : 1, deltaMax : 3, wiggle : 0 };
-
-// add particle components
+// Load a buffer from a file.
 model_buff = buffer_load("tree.vbuff");
-//model_buff = buffer_load("sphere.vbuff");
+
+// Create a matching vertex format array of this vertex buffer.
 model_vf = [e_vertexComponent.Position3d, e_vertexComponent.Normal, e_vertexComponent.Color];
-//model_vf = [e_vertexComponent.Position3d, e_vertexComponent.Texcoord, e_vertexComponent.Normal, e_vertexComponent.Float3];
+
+// Create a vb out of it.
 model_vb = vertex_create_buffer_from_buffer(model_buff, utils.vformatCache(model_vf) );
-model_sdf = utils.sdf3dCreate(model_vb, model_vf, 8192);
-trace(model_sdf);
 
+// Create a 3d sdf structure of this model.
+model_sdf = utils.sdf3dCreate(model_vb, model_vf, 4096);
+
+// Create a 3d model collider by passing the sdf data and world position.
 collider0 = new GMPartyColliderSDF3D(model_sdf, 0, 256, -300);
+collider0.xscale = 80;
+collider0.yscale = 80;
+collider0.zscale = 80;
+collider0.rotation[2] = 60;
+// Create a box collider to serve as ground.
+collider1 = new GMPartyColliderBox(-10000, -10000, 1000, 20000, 20000, 256);
+
+// Create a collision effector to bind with our colliders
 effector0 = new GMPartyEffectorCollider();
-//destructor0 = new GMPartyEffectorDestructor(5);
+
+// Add these components to the particle type (solvers will have their own component stack in the future)
 part.componentSet("some_component", effector0, collider0);
-//part.componentSet("some_component1", destructor0, collider0);
-
-collider1 = new GMPartyColliderSphere(256, 256, -800, 256);
-effector1 = new GMPartyEffectorAttractor(18);
-//part.componentSet("some_component", effector1, collider1);
-
-collider2 = new GMPartyColliderBox(x-2560, y-2560, 1000, 5120, 5120, 256);
-effector2 = new GMPartyEffectorCollider();
-part.componentSet("some_component2", effector2, collider2);
-
-
+part.componentSet("some_other_component", effector0, collider1);

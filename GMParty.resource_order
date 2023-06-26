@@ -4,7 +4,8 @@
     {"name":"gpu","order":1,"path":"folders/GMParty/gpu.yy",},
     {"name":"Tools","order":1,"path":"folders/GMParty/gpu/Tools.yy",},
     {"name":"hooks","order":2,"path":"folders/GMParty/hooks.yy",},
-    {"name":"TEST","order":2,"path":"folders/TEST.yy",},
+    {"name":"EXAMPLES","order":2,"path":"folders/EXAMPLES.yy",},
+    {"name":"downpour","order":4,"path":"folders/EXAMPLES/downpour.yy",},
   ],
   "ResourceOrderSettings": [
     {"name":"GMParty_shd_glconstants","order":2,"path":"shaders/GMParty_shd_glconstants/GMParty_shd_glconstants.yy",},

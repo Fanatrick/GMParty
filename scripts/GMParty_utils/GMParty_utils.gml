@@ -2,8 +2,6 @@
 #macro GMPARTY_UTILS_SDF3D (true)
 #macro GMPARTY_UTILS_SDF3D_PATH "SDF3D/sdf3d.dll"
 
-#macro trace show_debug_message
-
 enum e_vertexComponent {
 	Position2d,
 	Position3d,

@@ -82,37 +82,37 @@ vec3 normalizeSafe(vec3 invec) {
 }
 
 vec3 rotQuat(vec3 vector, vec4 quat) {
-  vec3 t = 2.0 * cross(quat.xyz, vector);
-  return (vector + quat.w * t + cross(quat.xyz, t));
+	vec3 t = 2.0 * cross(quat.xyz, vector);
+	return (vector + quat.w * t + cross(quat.xyz, t));
 }
 vec4 mulQuat(vec4 a, vec4 b) {
-  return vec4(
-    a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz),
-    a.w * b.w - dot(a.xyz, b.xyz)
-  );
+	return vec4(
+		a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz),
+		a.w * b.w - dot(a.xyz, b.xyz)
+	);
 }
 vec4 getRotQuat(float angle, vec3 axis) {
 	float halff = radians(angle) * .5;
 	return vec4(normalize(axis) * sin(halff), cos(halff));
 }
 vec4 eulerToQuat(float pitch, float yaw, float roll) {
-  float pitchRad = radians(pitch);
-  float yawRad = radians(yaw);
-  float rollRad = radians(roll);
-
-  float cy = cos(yawRad * 0.5);
-  float sy = sin(yawRad * 0.5);
-  float cp = cos(pitchRad * 0.5);
-  float sp = sin(pitchRad * 0.5);
-  float cr = cos(rollRad * 0.5);
-  float sr = sin(rollRad * 0.5);
-
-  float qx = cy * cp * sr - sy * sp * cr;
-  float qy = sy * cp * sr + cy * sp * cr;
-  float qz = sy * cp * cr - cy * sp * sr;
-  float qw = cy * cp * cr + sy * sp * sr;
-
-  return vec4(qx, qy, qz, qw);
+	float pitchRad = radians(pitch);
+	float yawRad = radians(yaw);
+	float rollRad = radians(roll);
+	
+	float cy = cos(yawRad * 0.5);
+	float sy = sin(yawRad * 0.5);
+	float cp = cos(pitchRad * 0.5);
+	float sp = sin(pitchRad * 0.5);
+	float cr = cos(rollRad * 0.5);
+	float sr = sin(rollRad * 0.5);
+	
+	float qx = cy * cp * sr - sy * sp * cr;
+	float qy = sy * cp * sr + cy * sp * cr;
+	float qz = sy * cp * cr - cy * sp * sr;
+	float qw = cy * cp * cr + sy * sp * sr;
+	
+	return vec4(qx, qy, qz, qw);
 }
 vec3 rotateXYZ(vec3 point, vec3 thetas) {
 	return rotQuat(point, eulerToQuat(thetas.x, thetas.y, thetas.z) );
@@ -191,7 +191,7 @@ void main() {
 	vec4 offset = ugmpImageOffset * p_scale.xyxy * p_scale.w;
 	vec3 corner = vec3(mix(offset.x, offset.z, in_Position.x), mix(offset.y, offset.w, in_Position.y), 0.0);
 	
-	vec4 translate = vec4(rotateXYZ(corner, vec3(p_rot.x, p_rot.y, p_rot.z) ), 1.0);
+	vec4 translate = vec4(rotateXYZ(corner, p_rot), 1.0);
 	translate = mix(vec4(cos(p_rot.x) * corner.x - sin(p_rot.x) * corner.y, sin(p_rot.x) * corner.x + cos(p_rot.x) * corner.y, 0.0, 1.0), translate, getFlag(pflags, flagIs3d));
 	
 	vec3 lookat = normalize(ugmpCamLookat);
