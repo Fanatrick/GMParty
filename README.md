@@ -1,5 +1,7 @@
-# GMParty 0.8.1 (experimental)
-**Party** is a modern, 3d particle system for GameMaker. It's simple to use, scalable, extensible and offers high performance by leveraging the GPU. It can hook itself onto GameMaker's standard particle system, emulating it on the GPU while also providing the user with superpowers.
+![party21](https://github.com/Fanatrick/GMParty/assets/12619098/43c0e26b-b813-4e5b-ab63-984ae1e68667)
+
+# GMParty 0.8.3 (experimental)
+**Party** is a modern, 3d particle system for GameMaker. It's simple to use, scalable, extensible, and offers high performance by leveraging the GPU. It can hook itself onto GameMaker's standard particle system, emulating it on the GPU while also providing the user with superpowers.
 
 *Party is currently experimental. Feel free to report issues and submit PRs.*
 
@@ -18,7 +20,7 @@
 - Deterministic emission states - allowing you to repeat/loop emission patterns
 - Particle components - solve complex, emerging behavior of individual particle types
 - Effectors - attractors, destructors, painters, colliders, custom processors
-- Collider shapes - spheres, boxes, cylinders, sprites
+- Collider shapes - spheres, boxes, cylinders, sprites, models
 - Additional particle flags and common built-in behavior
 - VRAM management - Party solvers can automatically rescale and rearrange their memory buffers
 - State snapshots
@@ -33,11 +35,12 @@
 
 - GameMaker version 2023.4 or above
 - Target platform needs to support:
-  - **surface_rgba16float** or **surface_rgba32float** surface formats
+  - **surface_rgba32float** surface formats
   - Texture lookups for vertex shaders
   - [GMD3D11.dll](https://github.com/blueburncz/GMD3D11) is included, enabling VTF on Windows
 
 ## Known issues
+
 
 - Behavior of GPU particles deviates from their standard CPU counterparts in some areas
 - Distribution can be wrong depending on device/platform
@@ -45,7 +48,6 @@
 - Shader uniforms should be cached for performance
 - Particle component processing sequence is not guaranteed
 - In 3d, view matrix needs to be reapplied after **GMPartySolver** calls
-- 3d renderer is not included
 
 ## Credits
 
