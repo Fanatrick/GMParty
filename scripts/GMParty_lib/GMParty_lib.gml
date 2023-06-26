@@ -1,5 +1,5 @@
 /// Feather disable all
-#macro GMPARTY_VERSION ((0<<16)+(8<<8)+(1))
+#macro GMPARTY_VERSION ((0<<16)+(8<<8)+(3))
 #macro GMPARTY_VERSION_STRING (string("{0}.{1}.{2}", GMPARTY_VERSION>>16, (GMPARTY_VERSION & 0xFFFF)>>8, (GMPARTY_VERSION & 0xFF)))
 
 #macro GMPARTY_TEXTURE_SIZE_MAX		(4096)
