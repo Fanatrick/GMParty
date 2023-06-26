@@ -43,13 +43,13 @@
 
 ## Known issues
 
-
 - Behavior of GPU particles deviates from their standard CPU counterparts in some areas
 - Distribution can be wrong depending on device/platform
 - Missing **clear()** methods for **GMPartyType** and **GMPartyWrapper**
 - Shader uniforms should be cached for performance
 - Particle component processing sequence is not guaranteed
 - In 3d, view matrix needs to be reapplied after **GMPartySolver** calls
+- Snapshots are currently bugged, making fbos volatile on device driver context updates (going full-screen and such)
 
 ## Credits
 
