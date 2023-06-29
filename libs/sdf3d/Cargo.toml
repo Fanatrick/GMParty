@@ -9,6 +9,7 @@ edition = "2021"
 libc = "*"
 nalgebra = "0.32.2"
 lazy_static = "1.4.0"
+base64 = "0.21.2"
 
 [lib]
 crate-type = ["cdylib"]

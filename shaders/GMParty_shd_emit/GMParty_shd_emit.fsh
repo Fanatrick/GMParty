@@ -52,6 +52,9 @@ uniform int u_uParticleFlags;
 uniform vec4 u_uEmitter;				// (type, distribution, colorMixing, impulse)
 uniform vec2 u_uEmitterRange;			// (min, max)
 uniform mat4 u_uEmitterRot;
+uniform sampler2D u_uEmitterTexture;
+uniform vec4 u_uEmitterTextureSize;		// (texsize, count)
+uniform vec4 u_uEmitterTextureScale;
 
 const float PI = 3.14159265359;
 const float PHI = 1.61803398874989484820459;
@@ -187,6 +190,28 @@ vec3 emitPosition() {
 			u_uParticlePosEnd,
 			_len
 		);
+	}
+	else if (u_uEmitter.r <= 3.0) {
+		float _ind = floor(randomRangeSlot(vec2(0.0, u_uEmitterTextureSize.y), 64.));
+		float _trid = _ind*4.;
+		vec2 _uv0 = vec2(mod(_trid, u_uEmitterTextureSize.x), floor(_trid / u_uEmitterTextureSize.x)) / u_uEmitterTextureSize.x;
+		_trid += 1.0;
+		vec2 _uv1 = vec2(mod(_trid, u_uEmitterTextureSize.x), floor(_trid / u_uEmitterTextureSize.x)) / u_uEmitterTextureSize.x;
+		_trid += 1.0;
+		vec2 _uv2 = vec2(mod(_trid, u_uEmitterTextureSize.x), floor(_trid / u_uEmitterTextureSize.x)) / u_uEmitterTextureSize.x;
+		
+		vec4 _s0 = texture2D(u_uEmitterTexture, _uv0);
+		vec4 _s1 = texture2D(u_uEmitterTexture, _uv1);
+		vec4 _s2 = texture2D(u_uEmitterTexture, _uv2);
+		
+		vec2 _bar = vec2(
+			randomRangeSlot(vec2(0.0, 1.0), 65.),
+			randomRangeSlot(vec2(0.0, 1.0), 66.)
+		);
+		
+		vec3 _pos = mix(_s0.xyz, mix(_s1.xyz, _s2.xyz, _bar.y), _bar.x) * u_uEmitterTextureScale.xyz;
+		
+		return u_uParticlePosStart + (vec4(_pos, 1.0) * u_uEmitterRot).xyz;
 	}
 	else return u_uParticlePosStart;
 }

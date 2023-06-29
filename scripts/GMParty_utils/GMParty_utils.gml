@@ -378,16 +378,30 @@ function gmpartyUtils() {
 			var _surf = surface_create(_texsize, _texsize, surface_rgba32float);
 			buffer_set_surface(_target, _surf, 0);
 			_json.surface = _surf;
+			
+			//var _compressed = buffer_compress(_target, 0, buffer_get_size(_target));
+			//buffer_delete(_target);
+			//_target = _compressed;
+			
+			_json.surface_buffer = _target;
 			_json.voxels = _seeded;
 			_json.texture_size = _texsize;
-			//_json.
+			
+			var _esize = power(2, ceil(log2(sqrt(_json.emitter_count*4))));
+			var _esurf = surface_create(_esize, _esize, surface_rgba32float);
+			_json.emitter_buffer = buffer_base64_decode(_json.emitter_output);
+			buffer_resize(_json.emitter_buffer, _esize*_esize*4*4);
+			buffer_set_surface(_json.emitter_buffer, _esurf, 0);
+			
+			_json.emitter = _esurf;
+			_json.emitter_texture_size = _esize;
+			variable_struct_remove(_json, "emitter_output");
 			
 			var _output = self.sdf3dBake(_json);
 			
 			_json.surface = _output;
 			
 			buffer_delete(_buffer);
-			buffer_delete(_target);
 			
 			return _json;
 		},
