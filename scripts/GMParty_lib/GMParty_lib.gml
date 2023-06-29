@@ -72,7 +72,8 @@ enum e_gmpartyEmitDistribution { // @TODO - fix distribution
 enum e_gmpartyEmitShape {
 	Box,
 	Sphere,
-	Line
+	Line,
+	Model
 }
 enum e_gmpartyEmitFire {
 	Absolute,
@@ -496,13 +497,20 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitter"), _ctx1.emitType, _ctx2.emitDistribution, _ctx3.emitColorMixing, _ctx4.emitFire);
 		_ctx1 = is_undefined(_emitter[$"emitRange"]) ? _part : _emitter;
 		shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterRange"), _ctx1.emitRange.min, _ctx1.emitRange.max);
+		_ctx1 = is_undefined(_emitter[$"emitTarget"]) ? _part : _emitter;
+		_ctx2 = is_undefined(_emitter[$"emitScale"]) ? _part : _emitter;
+		if !is_undefined(_ctx1[$"emitTarget"]) {
+			texture_set_stage(shader_get_sampler_index(_shader, "u_uEmitterTexture"), surface_get_texture(_ctx1.emitTarget.emitter) );
+			shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterTextureSize"), _ctx1.emitTarget.emitter_texture_size, _ctx1.emitTarget.emitter_count, 0, 0);
+			shader_set_uniform_f_array(shader_get_uniform(_shader, "u_uEmitterTextureScale"), _ctx2.emitScale);
+		}
 		_ctx1 = is_undefined(_emitter[$"emitRot"]) ? _part : _emitter;
-		var _sy = dsin(_ctx1.emitRot.yaw),
-			_cy = dcos(_ctx1.emitRot.yaw),
-			_sp = dsin(_ctx1.emitRot.pitch),
-			_cp = dcos(_ctx1.emitRot.pitch),
-			_sr = dsin(_ctx1.emitRot.roll),
-			_cr = dcos(_ctx1.emitRot.roll);
+		var _sy = dsin(-_ctx1.emitRot.yaw),
+			_cy = dcos(-_ctx1.emitRot.yaw),
+			_sp = dsin(-_ctx1.emitRot.pitch),
+			_cp = dcos(-_ctx1.emitRot.pitch),
+			_sr = dsin(-_ctx1.emitRot.roll),
+			_cr = dcos(-_ctx1.emitRot.roll);
 		var _mat = [
 		    _cr * _cy + _sr * _sp * _sy, _sr * _cp, -_cr * _sy + _sr * _sp * _cy, 0,
 		    -_sr * _cy + _cr * _sp * _sy, _cr * _cp, _sr * _sy + _cr * _sp * _cy, 0,
@@ -761,6 +769,9 @@ function GMPartyType() constructor {
 	flags = e_gmpartyPartFlag.WiggleOscillate | e_gmpartyPartFlag.WiggleRangeSymmetry;
 	
 	emitType = e_gmpartyEmitShape.Box;
+	emitTarget = undefined;
+	emitScale = [1, 1, 1];
+	
 	emitDistribution = e_gmpartyEmitDistribution.Linear;
 	emitColorMixing	= e_gmpartyMixing.Vector;
 	emitFire = e_gmpartyEmitFire.Absolute;
@@ -899,16 +910,16 @@ function GMPartyType() constructor {
 		max : 1.0
 	}
 	alpha1 = {
-		min : 1.0,
-		max : 1.0
+		min : -1.0,
+		max : -1.0
 	}
 	alpha2 = {
-		min : 1.0,
-		max : 1.0
+		min : -1.0,
+		max : -1.0
 	}
 	alpha3 = {
-		min : 0.0,
-		max : 0.0
+		min : -1.0,
+		max : -1.0
 	}
 	
 	sprite = GMPARTY_SHAPE_SPRITE_INDEX;

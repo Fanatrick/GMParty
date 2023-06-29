@@ -1,4 +1,5 @@
 use lazy_static::lazy_static;
+use std::ffi::CString;
 use std::sync::Mutex;
 
 use crate::Point3;
@@ -20,6 +21,9 @@ pub struct Config {
     pub seed_scale: Point3<f32>,
 
     pub winding: bool, // 0 = CCW, 1 = CW
+
+    pub emitter_buffer: CString,
+    pub emitter_count: usize,
 }
 impl Config {
     pub fn new() -> Self {
@@ -35,6 +39,8 @@ impl Config {
             ],
             seed_scale: Point3::new(1.0, 1.0, 1.0),
             winding: false,
+            emitter_buffer: CString::new("").unwrap(),
+            emitter_count: 0,
         }
     }
 }

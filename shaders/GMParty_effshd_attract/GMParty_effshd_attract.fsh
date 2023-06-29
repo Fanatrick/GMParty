@@ -141,7 +141,7 @@ vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
 	}
 	else if (ugmpShapeType == C_FAUX_TEX3D) {
 		vec3 _scale = vec3(ugmpShapeCTX3.xyz - ugmpShapeCTX2.xyz);
-		return ftexf3d(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.xyz, ugmpShapeCTXSamplerSize.xy, ugmpShapeCTXSamplerUVs.xyz, ugmpShapeCTX4.xyz, vec3(ugmpShapeCTX1.w, ugmpShapeCTX2.w, ugmpShapeCTX3.w)) / mix(vec3(1.0), _scale, float(_ddist < 0.5));//mix(vec3(1.0), vec3(ugmpShapeCTXSamplerUVs.xyz) * _scale * .5, float(_ddist < 0.5));
+		return ftexf3d(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.xyz, ugmpShapeCTXSamplerSize.xy, ugmpShapeCTXSamplerUVs.xyz, ugmpShapeCTX4.xyz, vec3(ugmpShapeCTX1.w, ugmpShapeCTX2.w, ugmpShapeCTX3.w)) / 1.;//mix(vec3(1.0), _scale, float(_ddist < 0.5));//mix(vec3(1.0), vec3(ugmpShapeCTXSamplerUVs.xyz) * _scale * .5, float(_ddist < 0.5));
 	}
 	return vec3(1.0);
 }

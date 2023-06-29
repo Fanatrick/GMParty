@@ -1,5 +1,8 @@
 use libc::c_char;
+
+use base64::{engine::general_purpose, Engine as _};
 use nalgebra::{Point3, Vector3};
+
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::i64;
@@ -13,6 +16,7 @@ mod utils;
 pub struct Triangle {
     vertices: [Point3<f32>; 3],
     normal: Vector3<f32>,
+    area: f32,
 }
 impl Triangle {
     pub fn new(coords: [Point3<f32>; 3]) -> Triangle {
@@ -42,7 +46,6 @@ impl Triangle {
         } else {
             edge1.cross(&edge2).normalize() // CW
         };
-
         Triangle {
             vertices: [
                 Point3::new(coords[0].x, coords[0].y, coords[0].z),
@@ -50,6 +53,7 @@ impl Triangle {
                 Point3::new(coords[2].x, coords[2].y, coords[2].z),
             ],
             normal: Vector3::new(normal.x, normal.y, normal.z),
+            area: edge1.cross(&edge2).norm() / 2.0,
         }
     }
 }
@@ -58,6 +62,7 @@ impl Triangle {
 pub struct Model {
     triangles: Vec<Triangle>,
     bbox: [Point3<f32>; 2],
+    surface_area: f32,
 }
 impl Model {
     pub fn new() -> Model {
@@ -67,6 +72,7 @@ impl Model {
                 Point3::new(std::f32::MAX, std::f32::MAX, std::f32::MAX),
                 Point3::new(std::f32::MIN, std::f32::MIN, std::f32::MIN),
             ],
+            surface_area: 0.0,
         }
     }
     pub fn add_triangle(&mut self, triangle: Triangle) {
@@ -80,7 +86,7 @@ impl Model {
             self.bbox[1].y = utils::pmax(self.bbox[1].y, coords.y + 1.);
             self.bbox[1].z = utils::pmax(self.bbox[1].z, coords.z + 1.);
         }
-        //println!("triangle: {:?}", triangle.normal);
+        self.surface_area += triangle.area;
         self.triangles.push(triangle);
     }
     pub fn load_from_buffer(
@@ -91,10 +97,6 @@ impl Model {
         vertex_size: usize,
     ) -> usize {
         let buffer: &[f32] = unsafe { std::slice::from_raw_parts(buffer, size) };
-        println!(
-            "size: {} offset: {} vertex_size: {}",
-            size, offset, vertex_size
-        );
         let mut i: usize = offset;
         let mut lul: usize = 0;
         while i < size {
@@ -111,6 +113,47 @@ impl Model {
             lul += 1;
         }
         lul
+    }
+    pub fn export_encoded(&self) -> () {
+        //let size: usize = self.triangles.len() * 3 * 3 * 4;
+        let mut buffer: Vec<f32> = Vec::new();
+        let mut index: usize = 0;
+
+        let mut triangles: Vec<&Triangle> = self.triangles.iter().collect();
+        triangles.sort_by(|a: &&Triangle, b: &&Triangle| a.area.partial_cmp(&b.area).unwrap());
+
+        let min: f32 = triangles.first().unwrap().area;
+        for triangle in &self.triangles {
+            let c: i32 = utils::pclamp((triangle.area / min) as i32, 1, 64);
+            for a in 0..c {
+                for i in 0..3 {
+                    let coords: nalgebra::OPoint<f32, nalgebra::Const<3>> = triangle.vertices[i];
+                    buffer.push(coords.x);
+                    buffer.push(coords.y);
+                    buffer.push(coords.z);
+                    buffer.push(index as f32);
+                }
+                buffer.push(triangle.normal.x);
+                buffer.push(triangle.normal.y);
+                buffer.push(triangle.normal.z);
+                buffer.push(a as f32);
+            }
+            index += c as usize;
+        }
+
+        let bytes: &[u8] = unsafe {
+            std::slice::from_raw_parts(
+                buffer.as_ptr() as *const u8,
+                buffer.len() * std::mem::size_of::<f32>(),
+            )
+        };
+
+        let base64_string = general_purpose::STANDARD.encode(bytes);
+
+        let mut conf: globals::Config = globals::get_config();
+        conf.emitter_buffer = CString::new(base64_string).unwrap();
+        conf.emitter_count = index;
+        globals::set_config(conf);
     }
 }
 
@@ -150,7 +193,7 @@ fn line_intersects_triangle(
         nalgebra::Const<1>,
         nalgebra::ArrayStorage<f32, 3, 1>,
     > = h.cross(&edge2);
-    let determinant = edge1.dot(&p);
+    let determinant: f32 = edge1.dot(&p);
 
     if determinant.abs() < 1e-6 {
         return None;
@@ -211,11 +254,11 @@ fn framebuffer_seed_model_scanlines(
     let mut pos: nalgebra::OPoint<f32, nalgebra::Const<3>> = Point3::new(0., 0., 0.);
     let mut total: i32 = 0;
     let linelen: f32 = model.bbox[1].x - model.bbox[0].x;
-    for z in 0..zlen + 0 {
-        pos.z = utils::flerp(model.bbox[1].z, model.bbox[0].z, z as f32 / zlen as f32);
-        for y in 0..ylen + 0 {
-            pos.y = utils::flerp(model.bbox[1].y, model.bbox[0].y, y as f32 / ylen as f32);
-            pos.x = model.bbox[0].x; //utils::flerp(model.bbox[0].x, model.bbox[1].x, -0.5 / xlen as f32);
+    for z in 0..zlen {
+        pos.z = utils::flerp(model.bbox[0].z, model.bbox[1].z, z as f32 / zlen as f32);
+        for y in 0..ylen {
+            pos.y = utils::flerp(model.bbox[0].y, model.bbox[1].y, y as f32 / ylen as f32);
+            pos.x = model.bbox[0].x;
 
             // scan this line for hits
             let mut hits: Vec<Hit> = Vec::new();
@@ -239,13 +282,10 @@ fn framebuffer_seed_model_scanlines(
 
             // sort the hits by index
             hits.sort_by(|a: &Hit, b: &Hit| a.index.cmp(&b.index));
-            // if hits.len() > 0 {
-            // println!("hits: {:?}", hits);
-            // }
 
             let mut scanstate: bool = false;
             let mut j: usize = 0;
-            for x in 0..xlen + 0 {
+            for x in 0..xlen {
                 let mut scan: i32 = 0;
                 for index in j..hits.len() {
                     let hit: &Hit = &hits[index];
@@ -268,12 +308,10 @@ fn framebuffer_seed_model_scanlines(
                 if scanstate == true {
                     if scan < 0 {
                         scanstate = false;
-                        // println!("outside at: [{}, {}, {}]", x, y, z);
                     }
                 } else {
                     if scan > 0 {
                         scanstate = true;
-                        // println!("inside at: [{}, {}, {}]", x, y, z);
                     }
                 }
 
@@ -309,13 +347,13 @@ pub extern "cdecl" fn seed_result_json() -> *const c_char {
     let zlen: usize = conf.seed_zlen;
     let bbox: [nalgebra::OPoint<f32, nalgebra::Const<3>>; 2] = conf.seed_bbox;
     let scale: nalgebra::OPoint<f32, nalgebra::Const<3>> = conf.seed_scale;
+
     let c_string: CString = CString::new(format!(
-        r#"{{"xlen":{},"ylen":{},"zlen":{},"bbox":[[{}, {}, {}], [{}, {}, {}]],"scale":[{}, {}, {}]}}"#,
-        xlen, ylen, zlen, bbox[0].x, bbox[0].y, bbox[0].z, bbox[1].x, bbox[1].y, bbox[1].z, scale.x, scale.y, scale.z
+        r#"{{"xlen":{},"ylen":{},"zlen":{},"bbox":[[{}, {}, {}], [{}, {}, {}]],"scale":[{}, {}, {}],"emitter_output":{:?},"emitter_count":{}}}"#,
+        xlen, ylen, zlen, bbox[0].x, bbox[0].y, bbox[0].z, bbox[1].x, bbox[1].y, bbox[1].z, scale.x, scale.y, scale.z, conf.emitter_buffer, conf.emitter_count
     ))
     .unwrap();
-    let pointer: *mut i8 = c_string.into_raw();
-    pointer
+    c_string.into_raw() as *const c_char
 }
 
 #[no_mangle]
@@ -347,11 +385,7 @@ pub extern "cdecl" fn seed_buffer(
     let max_alloc: f32 = (tsize * tsize) as f32;
 
     let total_voxels: i32 = discrete_x * discrete_y * discrete_z;
-    let total_alloc: i32 = utils::pmin(total_voxels, max_alloc as i32);
-    println!(
-        "total_voxels: {}, total_alloc: {}",
-        total_voxels, total_alloc
-    );
+    // let total_alloc: i32 = utils::pmin(total_voxels, max_alloc as i32);
 
     let compression_ratio: f32 = (max_alloc as f32 / total_voxels as f32).cbrt();
 
@@ -379,6 +413,8 @@ pub extern "cdecl" fn seed_buffer(
 
     let result: i32 = framebuffer_seed_model_scanlines(&model, buffer, xlen, ylen, zlen);
 
+    model.export_encoded();
+
     let mut conf: globals::Config = globals::get_config();
     conf.seed_xlen = xlen as usize;
     conf.seed_ylen = ylen as usize;
@@ -393,38 +429,4 @@ pub extern "cdecl" fn seed_buffer(
     globals::set_config(conf);
 
     result as f64
-}
-
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_seed_buffer() {
-        let mut model: Model = Model::new();
-        model.add_triangle(Triangle::new([
-            Point3::new(0., 0., 0.),
-            Point3::new(1., 0., 0.),
-            Point3::new(0., 1., 0.),
-        ]));
-        model.add_triangle(Triangle::new([
-            Point3::new(0., 0., 0.),
-            Point3::new(0., 1., 0.),
-            Point3::new(0., 0., 1.),
-        ]));
-        model.add_triangle(Triangle::new([
-            Point3::new(0., 0., 0.),
-            Point3::new(0., 0., 1.),
-            Point3::new(1., 0., 0.),
-        ]));
-        model.add_triangle(Triangle::new([
-            Point3::new(1., 0., 0.),
-            Point3::new(0., 0., 1.),
-            Point3::new(0., 1., 0.),
-        ]));
-
-        let mut buffer: [f32; 1000] = [0.; 1000];
-        let result: i32 = framebuffer_seed_model_scanlines(&model, &mut buffer, 10, 10, 10);
-        println!("result: {}", result);
-        println!("buffer: {:?}", buffer);
-    }
 }
