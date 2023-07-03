@@ -1,24 +1,4 @@
 /// Feather disable all
-#macro GMPARTY_VERSION ((0<<16)+(8<<8)+(3))
-#macro GMPARTY_VERSION_STRING (string("{0}.{1}.{2}", GMPARTY_VERSION>>16, (GMPARTY_VERSION & 0xFFFF)>>8, (GMPARTY_VERSION & 0xFF)))
-
-#macro GMPARTY_TEXTURE_SIZE_MAX		(4096)
-#macro GMPARTY_TEXTURE_CELL_COUNT	(e_gmpartyComponent.LEN)
-#macro GMPARTY_TEXTURE_GRID_SIZE	ceil(sqrt(GMPARTY_TEXTURE_CELL_COUNT))
-#macro GMPARTY_TEXTURE_CELL_SIZE	(GMPARTY_TEXTURE_SIZE_MAX div GMPARTY_TEXTURE_GRID_SIZE)
-#macro GMPARTY_TEXTURE_INDEX_COUNT	(GMPARTY_TEXTURE_CELL_SIZE * GMPARTY_TEXTURE_CELL_SIZE)
-
-#macro GMPARTY_EMIT_MAX (4096)			// maximum number of gmpartycles emitted at once (should be kept as a power-of-2 int)
-#macro GMPARTY_EMIT_BUFFERS (ceil(log2(GMPARTY_EMIT_MAX)) + 1)	// number of prebaked buffers needed to satisfy EMIT_MAX
-#macro GMPARTY_EMIT_SEED_MOD (65536)	// seed modulo, prevents precision errors on mobile
-
-#macro GMPARTY_RENDER_MIN (1)			// minimum render buffer size
-#macro GMPARTY_RENDER_MAX (GMPARTY_TEXTURE_INDEX_COUNT)			// maximum render buffer size
-#macro GMPARTY_RENDER_BUFFERS (ceil(log2(GMPARTY_RENDER_MAX)) - ceil(log2(GMPARTY_RENDER_MIN)) + 1)
-
-#macro GMPARTY_DEFAULT_SOLVER_SIZE (16) //(512*512)
-#macro GMPARTY_SHAPE_SPRITE_INDEX (GMParty_spr_pt_shape)
-
 enum e_gmpartyComponent {
 /* 0*/	Life,				// life, life_max, seed, type
 /* 1*/	Position,			// x, y, z, !FLAGS (e_gmpartyPartFlag.*)
@@ -161,11 +141,11 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	countAlive = 0;		// number of particles alive
 	countTimer = 0;		// number of iterations processed
 	countTell = 0;		// current vertex position
-	countMax = _num;	// allowed maximum n of particles
-	countMaxEffective = surfaceSlotSize * surfaceSlotSize;	// effective maximum
 	countOverflowSetting = e_gmpartyOverflow.Upscale;		// upscale if out of texture space
 	countUnderflowCorrection = true;
 	countUnderflowAllocMin = GMPARTY_DEFAULT_SOLVER_SIZE;	// minimum amount of indices that can be allocated
+	countMax = _num;	// allowed maximum n of particles
+	countMaxEffective = surfaceSlotSize * surfaceSlotSize;	// effective maximum
 	
 	countPriority = ds_priority_create();	// priority list of emission events, used in tracking alive particles
 	countStack = [];						// stack of emission events, used in tracking active particles
@@ -500,8 +480,8 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		_ctx1 = is_undefined(_emitter[$"emitTarget"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"emitScale"]) ? _part : _emitter;
 		if !is_undefined(_ctx1[$"emitTarget"]) {
-			texture_set_stage(shader_get_sampler_index(_shader, "u_uEmitterTexture"), surface_get_texture(_ctx1.emitTarget.emitter) );
-			shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterTextureSize"), _ctx1.emitTarget.emitter_texture_size, _ctx1.emitTarget.emitter_count, 0, 0);
+			texture_set_stage(shader_get_sampler_index(_shader, "u_uEmitterTexture"), surface_get_texture(_ctx1.emitTarget.getEmitter()) );
+			shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterTextureSize"), _ctx1.emitTarget.emitter.size, _ctx1.emitTarget.emitter.emitters, 0, 0);
 			shader_set_uniform_f_array(shader_get_uniform(_shader, "u_uEmitterTextureScale"), _ctx2.emitScale);
 		}
 		_ctx1 = is_undefined(_emitter[$"emitRot"]) ? _part : _emitter;
@@ -765,20 +745,21 @@ function GMPartyType() constructor {
 	index = PUID++;
 	utils.particleAddRef(index, self);
 	
-	#region Particle variables (can be overriden)
 	flags = e_gmpartyPartFlag.WiggleOscillate | e_gmpartyPartFlag.WiggleRangeSymmetry;
+	
+	#region Particle variables (can be decorated)
 	
 	emitType = e_gmpartyEmitShape.Box;
 	emitTarget = undefined;
-	emitScale = [1, 1, 1];
+	emitScale = [1.0, 1.0, 1.0];
 	
 	emitDistribution = e_gmpartyEmitDistribution.Linear;
 	emitColorMixing	= e_gmpartyMixing.Vector;
 	emitFire = e_gmpartyEmitFire.Absolute;
 	emitRot = {
-		yaw : 0,
-		pitch : 0,
-		roll : 0
+		yaw : 0.0,
+		pitch : 0.0,
+		roll : 0.0
 	}
 	emitRange = {
 		min : 0.0,
@@ -937,8 +918,8 @@ function GMPartyType() constructor {
 	}
 	
 	mass = {
-		min : 1,
-		max : 1
+		min : 1.0,
+		max : 1.0
 	}
 	restitution = {
 		min : 0.85,
@@ -1130,25 +1111,22 @@ function GMPartyColliderSDF3D(_sdf_data, _x, _y, _z) : GMPartyColliderPrototype(
 	
 	static bindColliderUniforms = function() {
 		var _shader = shader_current();
-		var _bbox = sdf_data.bbox;
+		var _bbox = sdf_data.collider.bbox;
+		var _vol = sdf_data.collider.volume;
 		var _mult = [
-			(_bbox[1][0] - _bbox[0][0]) / sdf_data.xlen,
-			(_bbox[1][1] - _bbox[0][1]) / sdf_data.ylen,
-			(_bbox[1][2] - _bbox[0][2]) / sdf_data.zlen
+			(_bbox[1][0] - _bbox[0][0]) / _vol[0],
+			(_bbox[1][1] - _bbox[0][1]) / _vol[1],
+			(_bbox[1][2] - _bbox[0][2]) / _vol[2]
 		];
-		
-		//rotation[0] = -180 + (current_time / 3) % 360;
-		//rotation[1] = -180 + (current_time / 4) % 360;
-		//rotation[2] = -180 + (current_time / 10) % 360;
 		
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX1"), x, y, z, _mult[0] * xscale);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX2"), _bbox[0][0] * xscale, _bbox[0][1] * yscale, _bbox[0][2] * zscale, _mult[1] * yscale);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX3"), _bbox[1][0] * xscale, _bbox[1][1] * yscale, _bbox[1][2] * zscale, _mult[2] * zscale);
 		shader_set_uniform_f_array(shader_get_uniform(_shader, "ugmpShapeCTX4"), rotation);
 		gpu_set_tex_filter_ext(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), false);
-		texture_set_stage(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), surface_get_texture(sdf_data.surface));
-		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerSize"), sdf_data.texture_size, sdf_data.texture_size);
-		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerUVs"),	sdf_data.xlen, sdf_data.ylen, sdf_data.zlen, 0);
+		texture_set_stage(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), surface_get_texture(sdf_data.getCollider()));
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerSize"), sdf_data.collider.size, sdf_data.collider.size);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerUVs"),	_vol[0], _vol[1], _vol[2], 0);
 	}
 }
 
@@ -1306,7 +1284,7 @@ enum e_gmpePaintSpace {
 }
 /// Creates a new painter effector, processing color operations on each collected particle's individual RGBA components.
 function GMPartyEffectorPainter(_input, _modes=undefined, _force=1.0, _space=e_gmpePaintSpace.RGB, _indices=undefined) : GMPartyEffectorPrototype() constructor {
-	input = _input;
+	input = _input;	// per-channel input values
 	mode = _modes ?? [e_gmpePaintMode.Mix, e_gmpePaintMode.Mix, e_gmpePaintMode.Mix, e_gmpePaintMode.Mix];	// mix all channels
 	force = _force;
 	absolute = false;
@@ -1410,3 +1388,255 @@ function GMPartyEffectorProcessor(_cell, _instructions, _reg0=undefined, _reg1=u
 		shader_reset();
 	}
 }
+
+//------------------------------------------------------------//
+// 3D SDFs
+
+/// Creates an sdf out of a 3d model by refering to it's vertex buffer,
+/// vertex format, target texture size and winding order. SDF buffers
+/// (at least those in ram) can be compressed, but bear in mind this
+/// diminishes the performance at which they can be resubmitted to vram.
+/// @arg {Id.VertexBuffer} _vbuffer
+/// @arg {Array<Real<e_vertexComponent>>} _vformat_array
+/// @arg {Real} _texsize
+/// @arg {Bool} _winding
+/// @arg {Bool} _compress
+/// @return {Struct.GMPartySDFModel}
+function gmpartySDF3DCreate(_vbuffer, _vformat_array, _texsize, _winding=true, _compress=false) {
+	var _sdf = new GMPartySDFModel();
+	if _sdf.bake(_vbuffer, _vformat_array, _texsize, _winding, _compress) == false {
+		return undefined;
+	}
+	return _sdf;
+}
+/// Frees an SDF from memory
+/// @arg {GMPartySDFModel} _sdf
+/// @return {Bool}
+function gmpartySDF3DFree(_sdf) {
+	return _sdf.free();
+}
+/// Saves an SDF to a file.
+/// @arg {String} _fname
+/// @return {Bool}
+function gmpartySDF3DSave(_sdf, _fname) {
+	var _buff = _sdf.write();
+	buffer_save(_buff, _fname);
+	buffer_delete(_buff);
+	return true;
+}
+/// Loads an SDF from a file.
+/// NOTE: Parsing and decompressing sdfs often ends up being slower in GM than
+/// recreating them in rust. On the other hand, a single uncompressed 4k SDF
+/// takes 256mb of memory. These are here for what it's worth, but use with care.
+/// @arg {String} _fname
+/// @return {Struct.GMPartySDFModel}
+function gmpartySDF3DLoad(_fname) {
+	var _buff = buffer_load(_fname);
+	if _buff <= -1 {
+		return undefined;
+	}
+	var _sdf = new GMPartySDFModel();
+	var _result = _sdf.read(_buff);
+	if !_result {
+		_sdf.free();
+		_sdf = undefined;
+	}
+	buffer_delete(_buff);
+	return _sdf;
+}
+
+function GMPartySDFModel() constructor {
+	static UTILS = gmpartyUtils();
+	static __FMTH = 0x1CFB_878C;
+	__INIT = false;
+	
+	collider = {
+		texture: -1,
+		buffer: -1,
+		size: 0,
+		bbox: [	[0, 0, 0], [0, 0, 0] ],
+		volume: [0, 0, 0],
+		scale: [0, 0, 0],
+		voxels: 0,
+		compressed: false
+	}
+	emitter = {
+		texture: -1,
+		buffer: -1,
+		size: 0,
+		emitters: 0,
+		compressed: false
+	}
+	
+	static bake = function(_vbuffer, _vformat_array, _texsize, _winding, _compress = false) {
+		if __INIT return false;
+		
+		var _json = UTILS.sdf3dCreate(_vbuffer, _vformat_array, _texsize, _winding);
+		if is_undefined(_json) return false;
+		
+		collider = {
+			texture: _json.surface,
+			buffer: _compress ? buffer_compress(_json.surface_buffer, 0, buffer_get_size(_json.surface_buffer)) : _json.surface_buffer,
+			size: _texsize,
+			bbox: _json.bbox,
+			volume: [_json.xlen, _json.ylen, _json.zlen],
+			scale: _json.scale,
+			voxels: _json.voxels,
+			compressed: _compress
+		}
+		if _compress {
+			buffer_delete(_json.surface_buffer);
+		}
+		
+		emitter = {
+			texture: _json.emitter,
+			buffer: _compress ? buffer_compress(_json.emitter_buffer, 0, buffer_get_size(_json.emitter_buffer)) : _json.emitter_buffer,
+			size: _json.emitter_texture_size,
+			emitters: _json.emitter_count,
+			compressed: _compress
+		}
+		if _compress {
+			buffer_delete(_json.emitter_buffer);
+		}
+		
+		delete _json;
+		
+		__INIT = true;
+		
+		return true;
+	}
+	static getCollider = function() {
+		if !__INIT return undefined;
+		var _result = collider.texture;
+		if !surface_exists(collider.texture) {
+			collider.texture = surface_create(collider.size, collider.size, surface_rgba32float);
+			var _buff = collider.compressed ? buffer_decompress(collider.buffer) : collider.buffer;
+			buffer_resize(_buff, collider.size * collider.size * 4 * 4);
+			buffer_set_surface(_buff, collider.texture, 0);
+			if collider.compressed {
+				buffer_delete(_buff);
+			}
+			_result = collider.texture;
+		}
+		return _result;
+	}
+	static getEmitter = function() {
+		if !__INIT return undefined;
+		var _result = emitter.texture;
+		if !surface_exists(emitter.texture) {
+			emitter.texture = surface_create(emitter.size, emitter.size, surface_rgba32float);
+			var _buff = emitter.compressed ? buffer_decompress(emitter.buffer) : emitter.buffer;
+			buffer_resize(_buff, emitter.size * emitter.size * 4 * 4);
+			buffer_set_surface(_buff, emitter.texture, 0);
+			if emitter.compressed {
+				buffer_delete(_buff);
+			}
+			_result = emitter.texture;
+		}
+		return _result;
+	}
+	static write = function() {
+		var _b = buffer_create(65536, buffer_grow, 1);
+		buffer_write(_b, buffer_u32, __FMTH);
+		buffer_write(_b, buffer_u16, collider.size);
+		buffer_write(_b, buffer_f32, collider.bbox[0][0]);
+		buffer_write(_b, buffer_f32, collider.bbox[0][1]);
+		buffer_write(_b, buffer_f32, collider.bbox[0][2]);
+		buffer_write(_b, buffer_f32, collider.bbox[1][0]);
+		buffer_write(_b, buffer_f32, collider.bbox[1][1]);
+		buffer_write(_b, buffer_f32, collider.bbox[1][2]);
+		buffer_write(_b, buffer_u16, collider.volume[0]);
+		buffer_write(_b, buffer_u16, collider.volume[1]);
+		buffer_write(_b, buffer_u16, collider.volume[2]);
+		buffer_write(_b, buffer_f32, collider.scale[0]);
+		buffer_write(_b, buffer_f32, collider.scale[1]);
+		buffer_write(_b, buffer_f32, collider.scale[2]);
+		buffer_write(_b, buffer_u32, collider.voxels);
+		buffer_write(_b, buffer_u8, collider.compressed);
+		var _size = buffer_get_size(collider.buffer);
+		buffer_write(_b, buffer_u32, _size);
+		buffer_copy(collider.buffer, 0, _size, _b, buffer_tell(_b));
+		buffer_seek(_b, buffer_seek_relative, _size);
+		
+		buffer_write(_b, buffer_u16, emitter.size);
+		buffer_write(_b, buffer_u32, emitter.emitters);
+		buffer_write(_b, buffer_u8, emitter.compressed);
+		_size = buffer_get_size(emitter.buffer);
+		buffer_write(_b, buffer_u32, _size);
+		buffer_copy(emitter.buffer, 0, _size, _b, buffer_tell(_b));
+		buffer_seek(_b, buffer_seek_relative, _size);
+		
+		buffer_resize(_b, buffer_tell(_b));
+		
+		return _b;
+	}
+	static read = function(_buffer) {
+		var _b = _buffer;
+		var _fmth = buffer_peek(_b, 0, buffer_u32);
+		if _fmth != __FMTH {
+			// header mismatch
+			return false;
+		}
+		var _bpos = buffer_tell(_b);
+		buffer_seek(_b, buffer_seek_start, 4);
+		collider.size = buffer_read(_b, buffer_u16);
+		collider.bbox[0][0] = buffer_read(_b, buffer_f32);
+		collider.bbox[0][1] = buffer_read(_b, buffer_f32);
+		collider.bbox[0][2] = buffer_read(_b, buffer_f32);
+		collider.bbox[1][0] = buffer_read(_b, buffer_f32);
+		collider.bbox[1][1] = buffer_read(_b, buffer_f32);
+		collider.bbox[1][2] = buffer_read(_b, buffer_f32);
+		collider.volume[0] = buffer_read(_b, buffer_u16);
+		collider.volume[1] = buffer_read(_b, buffer_u16);
+		collider.volume[2] = buffer_read(_b, buffer_u16);
+		collider.scale[0] = buffer_read(_b, buffer_f32);
+		collider.scale[1] = buffer_read(_b, buffer_f32);
+		collider.scale[2] = buffer_read(_b, buffer_f32);
+		collider.voxels = buffer_read(_b, buffer_u32);
+		collider.compressed = buffer_read(_b, buffer_u8);
+		var _size = buffer_read(_b, buffer_u32);
+		if buffer_exists(collider.buffer) {
+			buffer_delete(collider.buffer);
+		}
+		collider.buffer = buffer_create(_size, buffer_fixed, 1);
+		buffer_copy(_b, buffer_tell(_b), _size, collider.buffer, 0);
+		buffer_seek(collider.buffer, buffer_seek_end, 0);
+		buffer_seek(_b, buffer_seek_relative, _size);
+		
+		emitter.size = buffer_read(_b, buffer_u16);
+		emitter.emitters = buffer_read(_b, buffer_u32);
+		emitter.compressed = buffer_read(_b, buffer_u8);
+		_size = buffer_read(_b, buffer_u32);
+		if buffer_exists(emitter.buffer) {
+			buffer_delete(emitter.buffer);
+		}
+		emitter.buffer = buffer_create(_size, buffer_fixed, 1);
+		buffer_copy(_b, buffer_tell(_b), _size, emitter.buffer, 0);
+		buffer_seek(emitter.buffer, buffer_seek_end, 0);
+		//buffer_seek(_b, buffer_seek_relative, _size);
+		buffer_seek(_b, buffer_seek_start, _bpos);
+		
+		__INIT = true;
+		
+		return true;
+	}
+	static flush = function() {
+		if surface_exists(collider.texture) {
+			surface_free(collider.texture);
+		}
+		if surface_exists(emitter.texture) {
+			surface_free(emitter.texture);
+		}
+	}
+	static free = function() {
+		if !__INIT return false;
+		flush();
+		buffer_delete(collider.buffer);
+		buffer_delete(emitter.buffer);
+		delete collider;
+		delete emitter;
+		__INIT = false;
+		return true;
+	}
+}
+

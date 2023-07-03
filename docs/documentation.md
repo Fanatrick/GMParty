@@ -1,0 +1,15 @@
+﻿# [Documentation](docs/documentation.md)
+#### Setup
+- [Requirements and limitations](docs/usage/requirements.md)
+- [Installation](docs/usage/installation.md)
+- [Configuration](docs/usage/configuration.md)
+### Development
+- [Solvers](docs/dev/solvers.md)
+- [Particle types](docs/dev/types.md)
+- [Emitters](docs/dev/emitters.md)
+- [Decorators](docs/dev/decorators.md)
+- [Colliders](docs/dev/colliders.md)
+- [Effectors](docs/dev/effectors.md)
+- [SDF3D](docs/dev/sdfs.md)
+- [Hooks](docs/dev/hooks.md)
+- [Utilities](docs/dev/utils.md)

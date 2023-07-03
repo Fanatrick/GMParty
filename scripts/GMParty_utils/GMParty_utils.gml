@@ -1,7 +1,4 @@
 /// Feather disable all
-#macro GMPARTY_UTILS_SDF3D (true)
-#macro GMPARTY_UTILS_SDF3D_PATH "SDF3D/sdf3d.dll"
-
 enum e_vertexComponent {
 	Position2d,
 	Position3d,
@@ -377,12 +374,8 @@ function gmpartyUtils() {
 			
 			var _surf = surface_create(_texsize, _texsize, surface_rgba32float);
 			buffer_set_surface(_target, _surf, 0);
+			
 			_json.surface = _surf;
-			
-			//var _compressed = buffer_compress(_target, 0, buffer_get_size(_target));
-			//buffer_delete(_target);
-			//_target = _compressed;
-			
 			_json.surface_buffer = _target;
 			_json.voxels = _seeded;
 			_json.texture_size = _texsize;

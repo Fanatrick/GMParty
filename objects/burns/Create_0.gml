@@ -22,9 +22,10 @@ part.alpha1 = { min : 0.04, max : 0.02};
 part.alpha2 = { min : 0.0, max : 0.0};
 part.sprite	= spr_burns;
 part.image	= { min : 0, max : 0, count : 1};
-part.life	= { min : 60, max : 90}	;
+part.life	= { min : 60, max : 90};
 part.size	= { min : 0.02, max : 0.1, delta : 0.0, wiggle : 0.02 };
 part.speed	= { min : 0.0, max : 1.0, delta : 0.0, wiggle : 0.2 };
+part.xorient = { min : 0, max : 360, deltaMin : -16, deltaMax : 16, wiggle : 0 };
 part.xdir	= { min : 0.0, max : 360.0 };
 part.ydir	= { min : 0.0, max : 360.0 };
 part.zdir	= { min : 0.0, max : 360.0 };
@@ -59,8 +60,14 @@ model_vf = [e_vertexComponent.Position3d, e_vertexComponent.Normal, e_vertexComp
 // Create a vb out of it.
 model_vb = vertex_create_buffer_from_buffer(model_buff, utils.vformatCache(model_vf) );
 
-// Create a 3d sdf structure of this model, set it as an emit target
-model_sdf = utils.sdf3dCreate(model_vb, model_vf, 4096);
+// Get sdf from disk or bake a new one
+model_sdf = gmpartySDF3DLoad("tree.sdf");
+if is_undefined(model_sdf) {
+	model_sdf = gmpartySDF3DCreate(model_vb, model_vf, 2048, true, true);
+	gmpartySDF3DSave(model_sdf, "tree.sdf");
+}
+
+// Set sdf as an emit target
 emitter.emitTarget = model_sdf;
 emitter.emitScale = [80, 80, 80];
 

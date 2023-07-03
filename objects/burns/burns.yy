@@ -11,8 +11,8 @@
   "managed": true,
   "overriddenProperties": [],
   "parent": {
-    "name": "downpour",
-    "path": "folders/EXAMPLES/downpour.yy",
+    "name": "burns",
+    "path": "folders/EXAMPLES/burns.yy",
   },
   "parentObjectId": null,
   "persistent": false,
