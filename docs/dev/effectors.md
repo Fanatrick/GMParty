@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Effectors
 Party utilizes `effectors` in describing behaviors that occur when a particle ends up inside a collider.
 
@@ -186,5 +186,6 @@ effector = new GMPartyEffectorProcessor(
 part.componentSet("clamping", effector, collider);
 ```
 ---
-<- [Colliders](docs/dev/colliders.md)
--> [SDF3D](docs/dev/sdfs.md)
+<- [Colliders](colliders.md)
+
+-> [SDF3D](sdfs.md)
