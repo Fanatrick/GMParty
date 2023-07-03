@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # \*WIP\* Hooks
 
 ## GameMaker standard
@@ -33,5 +33,6 @@ Party ships with `GMParty/hooks` directory. This directory consists of:
 - Overridden functions are saved and exposed globally with a `GM_` prefix added to them (ie. `GM_part_system_create()` is correct).
 
 ---
-<- [SDF3D](docs/dev/sdfs.md)
--> [Utilities](docs/dev/utils.md)
+<- [SDF3D](sdfs.md)
+
+-> [Utilities](utils.md)
