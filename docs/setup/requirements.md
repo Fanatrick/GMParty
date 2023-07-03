@@ -24,5 +24,5 @@
 - Snapshots are currently bugged, making fbos volatile on device driver context updates (going full-screen and such)
 
 ---
--> [Installation](docs/setup/installation.md)
+-> [Installation](installation.md)
 
