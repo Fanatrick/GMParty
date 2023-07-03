@@ -50,15 +50,19 @@ model_vf = [e_vertexComponent.Position3d, e_vertexComponent.Normal, e_vertexComp
 // Create a vb out of it.
 model_vb = vertex_create_buffer_from_buffer(model_buff, utils.vformatCache(model_vf) );
 
-// Create a 3d sdf structure of this model.
-model_sdf = utils.sdf3dCreate(model_vb, model_vf, 4096);
-
+// Get sdf from disk or bake a new one
+model_sdf = gmpartySDF3DLoad("tree.sdf");
+if is_undefined(model_sdf) {
+	model_sdf = gmpartySDF3DCreate(model_vb, model_vf, 2048, true, true);
+	gmpartySDF3DSave(model_sdf, "tree.sdf");
+}
+a = GMParty_obj_partemitter_handler
 // Create a 3d model collider by passing the sdf data and world position.
-collider0 = new GMPartyColliderSDF3D(model_sdf, 0, 256, -300);
+collider0 = new GMPartyColliderSDF3D(model_sdf, 0, 256, 1000);
 collider0.xscale = 80;
 collider0.yscale = 80;
 collider0.zscale = 80;
-collider0.rotation[2] = 60;
+collider0.rotation[0] = 180;
 // Create a box collider to serve as ground.
 collider1 = new GMPartyColliderBox(-10000, -10000, 1000, 20000, 20000, 256);
 

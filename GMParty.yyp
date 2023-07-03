@@ -20,6 +20,7 @@
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"hooks","folderPath":"folders/GMParty/hooks.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"EXAMPLES","folderPath":"folders/EXAMPLES.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"downpour","folderPath":"folders/EXAMPLES/downpour.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"burns","folderPath":"folders/EXAMPLES/burns.yy",},
   ],
   "IncludedFiles": [
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"GMD3D11.dll","CopyToMask":64,"filePath":"datafiles/GMD3D11",},
@@ -39,6 +40,7 @@
     {"id":{"name":"GMParty_shd_jfafin","path":"shaders/GMParty_shd_jfafin/GMParty_shd_jfafin.yy",},},
     {"id":{"name":"GMParty_shd_sdf3d_end","path":"shaders/GMParty_shd_sdf3d_end/GMParty_shd_sdf3d_end.yy",},},
     {"id":{"name":"spr_burns","path":"sprites/spr_burns/spr_burns.yy",},},
+    {"id":{"name":"GMParty_config","path":"scripts/GMParty_config/GMParty_config.yy",},},
     {"id":{"name":"GMParty_effshd_paint","path":"shaders/GMParty_effshd_paint/GMParty_effshd_paint.yy",},},
     {"id":{"name":"GMParty_effshd_accelerate","path":"shaders/GMParty_effshd_accelerate/GMParty_effshd_accelerate.yy",},},
     {"id":{"name":"GMParty_shd_sdf3d_erode","path":"shaders/GMParty_shd_sdf3d_erode/GMParty_shd_sdf3d_erode.yy",},},
