@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Solvers
 Party solvers process and contain states of particle simulations. They are equivalent to `part_system` in standard GML. They can be instantiated by calling `GMPartySolver()` constructor.
 
@@ -188,6 +188,7 @@ mySolver.render();
 mySolver.free();
 ```
 ---
-<- [Configuration](docs/setup/configuration.md)
--> [Particle types](docs/dev/types.md)
+<- [Configuration](../setup/configuration.md)
+
+-> [Particle types](types.md)
 
