@@ -24,5 +24,5 @@ Parameter name | Type | Description
 ---
 <- [Installation](installation.md)
 
--> [Solvers](..dev/solvers.md)
+-> [Solvers](../dev/solvers.md)
 
