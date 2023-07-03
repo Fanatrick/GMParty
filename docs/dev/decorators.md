@@ -1,6 +1,6 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Decorators
-As briefly touched upon in [emitters](docs/dev/emitters.md), most of the particle configuration can be "overridden" if we pass a decorator struct as input to `GMPartySolver::emit()` call.
+As briefly touched upon in [emitters](emitters.md), most of the particle configuration can be "overridden" if we pass a decorator struct as input to `GMPartySolver::emit()` call.
 These decorators can be repurposed across solvers and particle types, and are a powerful tool for defining emitters and leveraging stateful behavior of Party particles.
 
 ## Constructor
@@ -41,6 +41,7 @@ solver.process();
 
 ```
 ---
-<- [Emitters](docs/dev/emitters.md)
--> [Colliders](docs/dev/colliders.md)
+<- [Emitters](emitters.md)
+
+-> [Colliders](colliders.md)
 
