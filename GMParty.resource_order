@@ -1,10 +1,10 @@
 {
   "FolderOrderSettings": [
+    {"name":"EXAMPLES","order":1,"path":"folders/EXAMPLES.yy",},
+    {"name":"burns","order":1,"path":"folders/EXAMPLES/burns.yy",},
     {"name":"gpu","order":1,"path":"folders/GMParty/gpu.yy",},
     {"name":"Tools","order":1,"path":"folders/GMParty/gpu/Tools.yy",},
     {"name":"hooks","order":2,"path":"folders/GMParty/hooks.yy",},
-    {"name":"EXAMPLES","order":1,"path":"folders/EXAMPLES.yy",},
-    {"name":"burns","order":1,"path":"folders/EXAMPLES/burns.yy",},
   ],
   "ResourceOrderSettings": [
     {"name":"GMParty_shd_glconstants","order":2,"path":"shaders/GMParty_shd_glconstants/GMParty_shd_glconstants.yy",},

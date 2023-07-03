@@ -11,6 +11,9 @@
   },
   "defaultScriptType": 1,
   "Folders": [
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"EXAMPLES","folderPath":"folders/EXAMPLES.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"burns","folderPath":"folders/EXAMPLES/burns.yy",},
+    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"downpour","folderPath":"folders/EXAMPLES/downpour.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"GMParty","folderPath":"folders/GMParty.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"GMD3D11","folderPath":"folders/GMParty/GMD3D11.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"gpu","folderPath":"folders/GMParty/gpu.yy",},
@@ -18,9 +21,6 @@
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"Tools","folderPath":"folders/GMParty/gpu/Tools.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"SDF3D","folderPath":"folders/GMParty/gpu/Tools/SDF3D.yy",},
     {"resourceType":"GMFolder","resourceVersion":"1.0","name":"hooks","folderPath":"folders/GMParty/hooks.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"EXAMPLES","folderPath":"folders/EXAMPLES.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"downpour","folderPath":"folders/EXAMPLES/downpour.yy",},
-    {"resourceType":"GMFolder","resourceVersion":"1.0","name":"burns","folderPath":"folders/EXAMPLES/burns.yy",},
   ],
   "IncludedFiles": [
     {"resourceType":"GMIncludedFile","resourceVersion":"1.0","name":"GMD3D11.dll","CopyToMask":64,"filePath":"datafiles/GMD3D11",},
