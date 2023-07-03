@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Particle types
 Particle types are structs that describe particle's configuration and emission values. When particles are emitted, their configuration tells the system which range should be taken into account for each individual field.
 
@@ -229,5 +229,5 @@ collider.y = self.y;
 effector.force = self.speed * 0.5;
 ```
 ---
-<- [Solvers](docs/dev/solvers.md)
--> [Emitters](docs/dev/emitters.md)
+<- [Solvers](solvers.md)
+-> [Emitters](emitters.md)
