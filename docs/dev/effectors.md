@@ -13,7 +13,7 @@ Variable | Type | Description
 `static cellSubmit(solver, cell)`
 **Description:** 
 Param| Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `solver` | `{Struct.GMPartySolver}` | Solver reference, lets the effector know who the caller is.
 `cell` | `{Enum.e_gmpartyComponent}` | Points to which cell component this effector transforms. Effectors are allowed to edit multiple cell components.
 
@@ -30,7 +30,7 @@ Param| Type | Description
 `GMPartyEffectorAccelerator(xspeed, yspeed, zspeed) : GMPartyEffectorPrototype() constructor`
 This effector will accelerate all particles it collides with by a designated speed vector.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `xspeed` | `{Real}` | X acceleration.
 `yspeed` | `{Real}` | Y acceleration.
 `zspeed` | `{Real}` | Z acceleration.
@@ -39,7 +39,7 @@ Returns | `{Struct.GMPartyEffectorAccelerator}` | Returns new `GMPartyEffectorAc
 `GMPartyEffectorAttractor(force, [absolute=false]) : GMPartyEffectorPrototype() constructor`
 This effector will attract all particles it collides with towards it's distance field. Negative force can be passed as an input.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `force` | `{Real}` | Force applied to colliding particles.
 `*optional*absolute` | `{Bool}` | Should the applied force be absolute or relative to the distance field.
 Returns | `{Struct.GMPartyEffectorAttractor}` | Returns new `GMPartyEffectorAttractor` effector reference.
@@ -47,7 +47,7 @@ Returns | `{Struct.GMPartyEffectorAttractor}` | Returns new `GMPartyEffectorAttr
 `GMPartyEffectorDestructor(force, [absolute=false]) : GMPartyEffectorPrototype() constructor`
 Depending on the force applied to particles it collides with, this effector will remove an amount of life from them. This value cannot be negative (life cannot be added to particles this way).
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `force` | `{Real}` | Force applied to colliding particles.
 `*optional*absolute` | `{Bool}` | Should the applied force be absolute or relative to the distance field.
 Returns | `{Struct.GMPartyEffectorDestructor}` | Returns new `GMPartyEffectorDestructor` effector reference.
@@ -55,7 +55,7 @@ Returns | `{Struct.GMPartyEffectorDestructor}` | Returns new `GMPartyEffectorDes
 `GMPartyEffectorCollider([mass=1.0]) : GMPartyEffectorPrototype() constructor`
 This effector applies physics-based collisions for the collider it is bound to.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `*optional*mass` | `{Bool}` | Collider object's physical mass.
 Returns | `{Struct.GMPartyEffectorCollider}` | Returns new `GMPartyEffectorCollider` effector reference.
 
