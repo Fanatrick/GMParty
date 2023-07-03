@@ -1,10 +1,11 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Colliders
 Colliders are objects which play a big part in defining particle behavior. They define volumes in world-space that detect collisions with particles, performing effector transformations onto every particle they manage to collide with.
 
 ## Enums
 `enum e_gmpartyColShape`
 Variants describe the shape of the collider.
+
 Variant | Description
 --- | --------
 `Box` | Box-shaped collider.
@@ -17,6 +18,7 @@ Variant | Description
 ## Prototype
 `GMPartyColliderPrototype() constructor`
 Serves as a parent from which all colliders inherit common behavior.
+
 Variable | Type | Description
 --- | --- | --------
 `type` | `{Enum.e_gmpartyColShape}` | Defines which type of a collider this object is.
@@ -34,7 +36,7 @@ This is a global collider. It procs effector collisions for all living particles
 `GMPartyColliderBox(x, y, z, xlen, ylen, zlen) : GMPartyColliderPrototype() constructor`
 This collider represents a 3d box, defined by 3d position and length vectors.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `x` | `{Real}` | X position.
 `y` | `{Real}` | Y position.
 `z` | `{Real}` | Z position.
@@ -46,7 +48,7 @@ Returns | `{Struct.GMPartyColliderBox}` | Returns new `GMPartyColliderBox` colli
 `GMPartyColliderSphere(x, y, z, radius) : GMPartyColliderPrototype() constructor`
 This collider represents a 3d sphere, defined by 3d position and radius.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `x` | `{Real}` | X position.
 `y` | `{Real}` | Y position.
 `z` | `{Real}` | Z position.
@@ -56,7 +58,7 @@ Returns | `{Struct.GMPartyColliderSphere}` | Returns new `GMPartyColliderSphere`
 `GMPartyColliderCylinder(x, y, z, xlen, ylen, zlen, radius) : GMPartyColliderPrototype() constructor`
 This collider represents a 3d cylinder, defined by 3d position and length vectors, including radius.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `x` | `{Real}` | X position.
 `y` | `{Real}` | Y position.
 `z` | `{Real}` | Z position.
@@ -69,7 +71,7 @@ Returns | `{Struct.GMPartyColliderCylinder}` | Returns new `GMPartyColliderCylin
 `GMPartyColliderPill(x, y, z, xlen, ylen, zlen, radius) : GMPartyColliderPrototype() constructor`
 This collider represents a 3d pill, defined by 3d position and length vectors, including radius.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `x` | `{Real}` | X position.
 `y` | `{Real}` | Y position.
 `z` | `{Real}` | Z position.
@@ -82,7 +84,7 @@ Returns | `{Struct.GMPartyColliderPill}` | Returns new `GMPartyColliderPill` col
 `GMPartyColliderSDF2D(sprite, image, x, y, xscale, yscale, angle) : GMPartyColliderPrototype() constructor`
 This collider represents a 2d SDF texture.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `sprite` | `{Asset.GMSprite}` | Sprite index.
 `image` | `{Real}` | Image index.
 `x` | `{Real}` | X position.
@@ -100,7 +102,7 @@ Variable | Type | Description
 `GMPartyColliderSDF3D(sdf_data, x, y, z) : GMPartyColliderPrototype() constructor`
 This collider represents a 3d SDF model texture.
 Param | Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `sdf_data` | `{Struct.GMPartySDFModel}` | Precomputed 3d SDF data.
 `x` | `{Real}` | X position.
 `y` | `{Real}` | Y position.
@@ -151,6 +153,6 @@ part.componentSet("some_other_component", effector0, collider1);
 
 ```
 ---
-<- [Decorators](docs/dev/decorators.md)
--> [Effectors](docs/dev/effectors.md)
+<- [Decorators](decorators.md)
+-> [Effectors](effectors.md)
 
