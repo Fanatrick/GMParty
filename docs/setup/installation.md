@@ -5,7 +5,7 @@ Importing Party as a local package from [releases](https://github.com/Fanatrick/
 ### Importing into your own projects
 - Download the latest [release](https://github.com/Fanatrick/GMParty/releases).
 - Import a `GMParty-X.X.X.yymps` local package via GM-IDE `Tools -> Import Local Package`
-	- All files and directories are necessary except `GMParty/hooks`. If you're not interested in overriding the native particle system you can freely omit that whole directory. See [Hooks](docs/dev/hooks.md).
+	- All files and directories are necessary except `GMParty/hooks`. If you're not interested in overriding the native particle system you can freely omit that whole directory. See [Hooks](../dev/hooks.md).
 
 **or**
 
@@ -16,5 +16,6 @@ Importing Party as a local package from [releases](https://github.com/Fanatrick/
 
 ---
 <- [Requirements and limitations](requirements.md)
+
 -> [Configuration](configuration.md)
 
