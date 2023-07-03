@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Emitters
 In Party, particle types themselves expose fields that define their emission behavior. There is no need for emitter objects, particles can instead be decorated by GMPartyDecorator constructs.
 
@@ -100,6 +100,7 @@ part.emitTarget = mySDF;
 part.emitScale = [80.0, 80.0, 80.0];
 ```
 ---
-<- [Particle types](docs/dev/types.md)
--> [Decorators](docs/dev/decorators.md)
+<- [Particle types](types.md)
+
+-> [Decorators](decorators.md)
 
