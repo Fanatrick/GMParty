@@ -6,7 +6,7 @@ Party solvers process and contain states of particle simulations. They are equiv
 `GMPartySolver([num=GMPARTY_DEFAULT_SOLVER_SIZE]) constructor`
 Constructs a new Party solver object allocating `num` or `default` amount of particle indices.
 Param| Type | Description
---- | --- | --- | --------
+--- | --- | --------
 `*optional*num` | `{Real}` | Number of particle indices this solver will allocate at creation. **Default: GMPARTY_DEFAULT_SOLVER_SIZE**
 Returns | `{Struct.GMPartySolver}`
 
