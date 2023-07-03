@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 ## Configuration
 Party can be configured by editing `GMParty/GMParty_config.gml`.
 Parameter name | Type | Description
@@ -22,6 +22,7 @@ Parameter name | Type | Description
 `GMPARTY_UTILS_SDF3D_PATH` | `{String}` | Path and fname pointing to SDF3D.dll
 
 ---
-<- [Installation](docs/setup/installation.md)
--> [Solvers](docs/dev/solvers.md)
+<- [Installation](installation.md)
+
+-> [Solvers](solvers.md)
 
