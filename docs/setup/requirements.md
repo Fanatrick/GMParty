@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 ## Requirements
 ### GameMaker:
 - IDE `>= v2023.400`
