@@ -41,6 +41,9 @@
   - Texture lookups for vertex shaders
   - [GMD3D11.dll](https://github.com/blueburncz/GMD3D11) is included, enabling VTF on Windows
 
+## Documentation
+[Docs](docs/documentation.md)
+
 ## Known issues
 
 - Behavior of GPU particles deviates from their standard CPU counterparts in some areas
