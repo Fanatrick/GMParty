@@ -14,18 +14,18 @@ Returns | `{Struct.GMPartySDFModel}`
 Field | Value | Type | Description
 --- | --- | --- | --------
 `collider` | `texture` | `{Id.Surface}` | Surface index describing this colliders memory in VRAM.
-- | `buffer` | `{Id.Buffer}` | Non-volatile RAM copy of collider data.
-- | `size` | `{Real}` | Texture size.
-- | `bbox` | `{Array<2, Array<3, f32>>}` | Bounding box coordinates
-- | `volume` | `{Array<3, i32>}` | Volume of the SDF collider (discrete values across 3 dimensions).
-- | `scale` | `{Array<3, f32>}` | Quantization factor (model_size.xyz / volume.xyz).
-- | `voxels` | `{Real}` | Total number of voxels contained within this SDF collider.
-- | `compressed` | `{Bool}` | Boolean describing if the collider is compressed in RAM.
+/ | `buffer` | `{Id.Buffer}` | Non-volatile RAM copy of collider data.
+/ | `size` | `{Real}` | Texture size.
+/ | `bbox` | `{Array<2, Array<3, f32>>}` | Bounding box coordinates
+/ | `volume` | `{Array<3, i32>}` | Volume of the SDF collider (discrete values across 3 dimensions).
+/ | `scale` | `{Array<3, f32>}` | Quantization factor (model_size.xyz / volume.xyz).
+/ | `voxels` | `{Real}` | Total number of voxels contained within this SDF collider.
+/ | `compressed` | `{Bool}` | Boolean describing if the collider is compressed in RAM.
 emitter | `texture` | `{Id.Surface}` | Surface index describing this emitters memory in VRAM.
-- | `buffer` | `{Id.Buffer}` | Non-volatile RAM copy of emitter data.
-- | `size` | `{Real}` | Texture size.
-- | `emitters` | `{Real}` | Total number of emitters contained within this SDF emitter.
-- | `compressed` | `{Bool}` | Boolean describing if the emitter is compressed in RAM.
+/ | `buffer` | `{Id.Buffer}` | Non-volatile RAM copy of emitter data.
+/ | `size` | `{Real}` | Texture size.
+/ | `emitters` | `{Real}` | Total number of emitters contained within this SDF emitter.
+/ | `compressed` | `{Bool}` | Boolean describing if the emitter is compressed in RAM.
 
 `static bake(vbuffer, vformat_array, texsize, winding, [compress=false])`
 **Description:** Bakes the SDF data from 3d model data and additional config input.
