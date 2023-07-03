@@ -154,5 +154,6 @@ part.componentSet("some_other_component", effector0, collider1);
 ```
 ---
 <- [Decorators](decorators.md)
+
 -> [Effectors](effectors.md)
 
