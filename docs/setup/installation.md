@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](documentation.md)
 ## Installation
 Importing Party as a local package from [releases](https://github.com/Fanatrick/GMParty/releases) rather than cloning the repo is encouraged. The only difference between the two is that `src` often includes in-development stuff, demos and examples so it can be self-sufficiently ran as a GameMaker project.
 
@@ -15,6 +15,6 @@ Importing Party as a local package from [releases](https://github.com/Fanatrick/
 - Import files from local package to your project's directory, optionally omitting `GMParty/hooks`.
 
 ---
-<- [Requirements and limitations](docs/setup/requirements.md)
--> [Configuration](docs/setup/configuration.md)
+<- [Requirements and limitations](requirements.md)
+-> [Configuration](configuration.md)
 
