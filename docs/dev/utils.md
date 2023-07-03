@@ -1,4 +1,4 @@
-﻿# [Documentation](docs/documentation.md)
+﻿# [Documentation](../documentation.md)
 # Utilities
 Party includes `GMParty_utils.gml` and uses it internally. Not a whole lot of it is important, but there are a couple of useful functions that can be utilized. This library is "lazily-loaded" as a struct and can be referred to like this:
 ```js
@@ -87,4 +87,4 @@ Const | Description
 `GL_VTF`| If vertex texture fetching is available.
 
 ---
-<- [Hooks](docs/dev/hooks.md)
+<- [Hooks](hooks.md)
