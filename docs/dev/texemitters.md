@@ -50,7 +50,7 @@ Returns | `{Bool}` | Returns `true` on successful operation.
 **Description:** Constructs `GMPartyTextureEmitter` object out of a sprite binding.
 Param| Type | Description
 --- | --- | --------
-`sprite` | `{Id.VertexBuffer}` | Sprite index we want to turn into an emission texture.
+`sprite` | `{Asset.GMSprite}` | Sprite index we want to turn into an emission texture.
 Returns | `{Struct.GMPartyTextureEmitter}` | Reference to this emitter.
 
 `gmpartyTextureEmitterFree(texemitter)`
