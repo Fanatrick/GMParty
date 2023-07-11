@@ -6,8 +6,8 @@ These decorators can be repurposed across solvers and particle types, and are a 
 ## Constructor
 `GMPartyDecorator() constructor`
 Constructs an empty decorator object.
-Param| Type | Description
---- | --- | --- | --------
+Param | Type | Description
+--- | --- | --------
 Returns | `{Struct.GMPartyDecorator}`
 
 Decorators by themselves contain no fields or methods whatsoever. They're basically a blank slate, where you can define particle type configuration overrides. For example, a particle type can have its emission vector directed towards a random point on a sphere. By passing a decorator that has its emission vector pointed in front of it, we can override the particle type vector with it.
