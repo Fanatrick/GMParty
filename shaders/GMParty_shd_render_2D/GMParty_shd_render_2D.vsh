@@ -205,6 +205,8 @@ void main() {
 	);
 	translate = mix(translate, vec4(corner * viewmat, 1.0), getFlag(pflags, flagIsLookat));
 	
+	translate = vec4(cos(p_rot.x) * corner.x - sin(p_rot.x) * corner.y, sin(p_rot.x) * corner.x + cos(p_rot.x) * corner.y, 0.0, 1.0);
+	
 	gl_Position = gm_Matrices[MATRIX_WORLD_VIEW_PROJECTION] * vec4( p_pos + translate.xyz, 1.0);
 	// image, texture
 	vec4 p_img = lookup(puv, 12.0);

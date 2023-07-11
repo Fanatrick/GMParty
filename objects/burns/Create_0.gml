@@ -61,11 +61,11 @@ model_vf = [e_vertexComponent.Position3d, e_vertexComponent.Normal, e_vertexComp
 model_vb = vertex_create_buffer_from_buffer(model_buff, utils.vformatCache(model_vf) );
 
 // Get sdf from disk or bake a new one
-model_sdf = gmpartySDF3DLoad("tree.sdf");
-if is_undefined(model_sdf) {
+//model_sdf = gmpartySDF3DLoad("tree.sdf");
+//if is_undefined(model_sdf) {
 	model_sdf = gmpartySDF3DCreate(model_vb, model_vf, 2048, true, true);
-	gmpartySDF3DSave(model_sdf, "tree.sdf");
-}
+//	gmpartySDF3DSave(model_sdf, "tree.sdf");
+//}
 
 // Set sdf as an emit target
 emitter.emitTarget = model_sdf;

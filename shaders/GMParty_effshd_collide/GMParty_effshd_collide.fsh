@@ -72,6 +72,7 @@ vec3 rotateXYZConjugate(vec3 point, vec3 thetas) {
 #define C_PILL			3
 #define C_TEX2D			4
 #define C_FAUX_TEX3D	5
+#define C_HEIGHTMAP		6
 
 vec3 fbox(vec3 _ppos, vec3 _start, vec3 _end, vec2 _minmax) {
 	vec3 _center = (_start + _end) * 0.5;
@@ -125,6 +126,31 @@ vec3 ftexf3d(vec3 _ppos, vec3 _spos, vec3 _start, vec3 _end, vec2 _tsize, vec3 _
 	vec3 _jump = -sdf3dSample(floor(_tp+0.5), _tsize, _volume).xyz / _mult;
 	return rotateXYZConjugate(_jump, -_rot);
 }
+vec3 fheightmap(vec3 _ppos, vec3 _start, vec3 _len, float _rot) {
+	vec3 _spos = _start + _len * 0.5;
+	vec2 _line = (_ppos.xy - _spos.xy) * mat2(cos(_rot), -sin(_rot), sin(_rot), cos(_rot));
+	vec2 _rpos = _spos.xy + _line;
+	vec2 _tpos = (_rpos - _start.xy) / (_len.xy);
+	vec4 _px = texture2D(ugmpShapeCTXSampler, _tpos);
+	float _h = _px.w * _len.z;
+	vec3 _norm = -_px.xyz;
+	_norm = vec3(
+		-_px.xy * mat2(cos(-_rot), -sin(-_rot), sin(-_rot), cos(-_rot)),
+		abs(_norm.z) * sign(_len.z)
+	);
+	//_norm.xy *= 10.;
+	//_norm = normalize(_norm);
+	float _zstart = _start.z;
+	float _zend = _start.z + _h;
+	
+	if (_ppos.z > _zend) {
+		return _norm * (_zend - _ppos.z);
+	}
+	
+	return vec3(0.0);
+	
+	//return (_zend - _ppos.z) * _norm * float(clamp(_ppos.z, _zstart, _zstart - _h) == _ppos.z);
+}
 
 vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
 	if (ugmpShapeType == C_BOX) {
@@ -145,6 +171,9 @@ vec3 fhandle(vec3 _point, vec4 _ctx1, vec4 _ctx2, vec4 _ctx3, float _ddist) {
 	else if (ugmpShapeType == C_FAUX_TEX3D) {
 		vec3 _scale = vec3(ugmpShapeCTX3.xyz - ugmpShapeCTX2.xyz);
 		return ftexf3d(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.xyz, ugmpShapeCTXSamplerSize.xy, ugmpShapeCTXSamplerUVs.xyz, ugmpShapeCTX4.xyz, vec3(ugmpShapeCTX1.w, ugmpShapeCTX2.w, ugmpShapeCTX3.w)) / mix(vec3(1.0), _scale, float(_ddist < 0.5));//mix(vec3(1.0), vec3(ugmpShapeCTXSamplerUVs.xyz) * _scale * .5, float(_ddist < 0.5));
+	}
+	else if (ugmpShapeType == C_HEIGHTMAP) {
+		return fheightmap(_point, _ctx1.xyz, _ctx2.xyz, _ctx3.x) / 1.0;//mix(1.0, _ctx2.z, float(_ddist <= 0.0));
 	}
 	return vec3(1.0);
 }

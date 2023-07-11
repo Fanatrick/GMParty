@@ -168,8 +168,7 @@ void main() {
 		vec3 val_delta = lookup(indexUVs, 8.0, gm_BaseTexture).xyz; // read orientation delta
 		vec3 val_wiggle = lookup(indexUVs, 9.0, gm_BaseTexture).xyz; // read orientation wiggle
 		
-		vec3 val_ns = normalize(val_spd);
-		float pitch = -degrees(asin(dot(normalize(val_spd), vec3(0.0, 0.0, 1.0))));
+		float pitch = -degrees(asin(dot(normalizeSafe(val_spd), vec3(0.0, 0.0, 1.0))));
 		float yaw = degrees(atan(val_spd.y, val_spd.x));
 		
 		pack.xyz = mix(

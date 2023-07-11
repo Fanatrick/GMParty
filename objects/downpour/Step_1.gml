@@ -1,5 +1,5 @@
 // Emit 1000 particles of some type, decorating them with an emitter
-solver.emit(part, 1000, emitter);
+solver.emit(part, 10000, emitter);
 
 // Process a single step
 solver.process();

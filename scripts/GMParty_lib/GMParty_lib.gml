@@ -53,7 +53,8 @@ enum e_gmpartyEmitShape {
 	Box,
 	Sphere,
 	Line,
-	Model
+	Model,
+	Sprite
 }
 enum e_gmpartyEmitFire {
 	Absolute,
@@ -67,7 +68,6 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	static utils = gmpartyUtils();
 	static glConfig = utils.glConfigGet();
 	static __getAllocSize = function(_alloc) {
-		//show_debug_message(string("SIZE: {0} - {1}"), _alloc, power(2, ceil(log2(sqrt(_alloc)))) );
 		return power(2, ceil(log2(sqrt(_alloc))));
 	}
 	static __vformatWrite = utils.vformatCache([e_vertexComponent.Position2d]);
@@ -126,7 +126,7 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	static __surfaceFormat = surface_rgba32float;	// 16bit currently has color encoding errors
 	static __CamX = 0;
 	static __CamY = 0;
-	static __CamZ = 0;
+	static __CamZ = -1;
 	
 	surfaceSlotSize	= __getAllocSize(_num);	// calculate power of 2 slotsize
 	surfaceTexSize	= surfaceSlotSize * GMPARTY_TEXTURE_GRID_SIZE;
@@ -479,10 +479,12 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterRange"), _ctx1.emitRange.min, _ctx1.emitRange.max);
 		_ctx1 = is_undefined(_emitter[$"emitTarget"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"emitScale"]) ? _part : _emitter;
+		_ctx3 = is_undefined(_emitter[$"emitOffset"]) ? _part : _emitter;
 		if !is_undefined(_ctx1[$"emitTarget"]) {
 			texture_set_stage(shader_get_sampler_index(_shader, "u_uEmitterTexture"), surface_get_texture(_ctx1.emitTarget.getEmitter()) );
-			shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterTextureSize"), _ctx1.emitTarget.emitter.size, _ctx1.emitTarget.emitter.emitters, 0, 0);
+			shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterTextureSize"), _ctx1.emitTarget.emitter.width, _ctx1.emitTarget.emitter.height, _ctx1.emitTarget.emitter.emitters, 0);
 			shader_set_uniform_f_array(shader_get_uniform(_shader, "u_uEmitterTextureScale"), _ctx2.emitScale);
+			shader_set_uniform_f_array(shader_get_uniform(_shader, "u_uEmitterTextureOffset"), _ctx3.emitOffset);
 		}
 		_ctx1 = is_undefined(_emitter[$"emitRot"]) ? _part : _emitter;
 		var _sy = dsin(-_ctx1.emitRot.yaw),
@@ -684,7 +686,6 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 			texBindingsObsolete = false;
 		}
 		
-		var _thiscam = camera_get_active();
 		var _rbuffer = getRenderBuffer();
 		shader_set(_shader);
 		utils.glShaderStageVS(shader_get_sampler_index(_shader, "ugmpParticleData"), surface_get_texture(getSurfaceParticle()));
@@ -752,6 +753,7 @@ function GMPartyType() constructor {
 	emitType = e_gmpartyEmitShape.Box;
 	emitTarget = undefined;
 	emitScale = [1.0, 1.0, 1.0];
+	emitOffset = [0.0, 0.0, 0.0, 0.0];
 	
 	emitDistribution = e_gmpartyEmitDistribution.Linear;
 	emitColorMixing	= e_gmpartyMixing.Vector;
@@ -974,7 +976,8 @@ enum e_gmpartyColShape {
 	Cylinder,
 	Pill,
 	Texture2D,
-	TextureFaux3D
+	TextureFaux3D,
+	Heightmap
 }
 
 /// @ignore
@@ -1127,6 +1130,31 @@ function GMPartyColliderSDF3D(_sdf_data, _x, _y, _z) : GMPartyColliderPrototype(
 		texture_set_stage(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), surface_get_texture(sdf_data.getCollider()));
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerSize"), sdf_data.collider.size, sdf_data.collider.size);
 		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerUVs"),	_vol[0], _vol[1], _vol[2], 0);
+	}
+}
+function GMPartyColliderHeightmap(_height_data, _x_start, _y_start, _z_start, _x_len, _y_len, _z_len) : GMPartyColliderPrototype() constructor {
+	type = e_gmpartyColShape.Heightmap;
+	
+	height_data = _height_data;
+	
+	x_start = _x_start;
+	y_start = _y_start;
+	z_start = _z_start;
+	
+	x_len = _x_len;
+	y_len = _y_len;
+	z_len = _z_len;
+	
+	rotation = 0;
+	
+	static bindColliderUniforms = function() {
+		var _shader = shader_current();
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX1"), x_start, y_start, z_start, 0);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX2"), x_len, y_len, z_len, 0);
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTX3"), rotation, 0, 0, 0);
+		gpu_set_tex_filter_ext(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), true);
+		texture_set_stage(shader_get_sampler_index(_shader, "ugmpShapeCTXSampler"), surface_get_texture(height_data.getHeightmap()));
+		shader_set_uniform_f(shader_get_uniform(_shader, "ugmpShapeCTXSamplerSize"), height_data.heightmap.size, height_data.heightmap.size);
 	}
 }
 
@@ -1391,7 +1419,7 @@ function GMPartyEffectorProcessor(_cell, _instructions, _reg0=undefined, _reg1=u
 
 //------------------------------------------------------------//
 // 3D SDFs
-
+//------------------------------------------------------------//
 /// Creates an sdf out of a 3d model by refering to it's vertex buffer,
 /// vertex format, target texture size and winding order. SDF buffers
 /// (at least those in ram) can be compressed, but bear in mind this
@@ -1410,7 +1438,7 @@ function gmpartySDF3DCreate(_vbuffer, _vformat_array, _texsize, _winding=true, _
 	return _sdf;
 }
 /// Frees an SDF from memory
-/// @arg {GMPartySDFModel} _sdf
+/// @arg {Struct.GMPartySDFModel} _sdf
 /// @return {Bool}
 function gmpartySDF3DFree(_sdf) {
 	return _sdf.free();
@@ -1462,9 +1490,10 @@ function GMPartySDFModel() constructor {
 	}
 	emitter = {
 		texture: -1,
-		buffer: -1,
-		size: 0,
+		width: 0,
+		height: 0,
 		emitters: 0,
+		buffer: -1,
 		compressed: false
 	}
 	
@@ -1491,7 +1520,8 @@ function GMPartySDFModel() constructor {
 		emitter = {
 			texture: _json.emitter,
 			buffer: _compress ? buffer_compress(_json.emitter_buffer, 0, buffer_get_size(_json.emitter_buffer)) : _json.emitter_buffer,
-			size: _json.emitter_texture_size,
+			width: _json.emitter_texture_size,
+			height: _json.emitter_texture_size,
 			emitters: _json.emitter_count,
 			compressed: _compress
 		}
@@ -1639,4 +1669,162 @@ function GMPartySDFModel() constructor {
 		return true;
 	}
 }
+
+//------------------------------------------------------------//
+// Heightmap resources
+//------------------------------------------------------------//
+/// Creates a Party heightmap resource by baking an sprite
+/// onto a texture of desired resolution.
+/// @arg {Asset.GMSprite} _sprite
+/// @arg {Real} _texsize
+/// @return {Struct.GMPartyHeightmap}
+function gmpartyHeightmapCreate(_sprite, _texsize) {
+	var _hm = new GMPartyHeightmap();
+	if _hm.bake(_sprite, _texsize) == false {
+		return undefined;
+	}
+	return _hm;
+}
+/// Frees a heightmap resource from memory
+/// @arg {Struct.GMPartyHeightmap} _heightmap
+/// @return {Bool}
+function gmpartyHeightmapFree(_heightmap) {
+	return _heightmap.free();
+}
+
+
+function GMPartyHeightmap(_sprite) constructor {
+	static UTILS = gmpartyUtils();
+	__INIT = false;
+	
+	heightmap = {
+		target: -1,
+		texture: -1,
+		size: 0,
+		factor: 1.0
+	}
+	
+	static bake = function(_sprite, _texsize, _factor=1.0) {
+		if __INIT return false;
+		
+		heightmap.target = _sprite;
+		heightmap.size = _texsize;
+		heightmap.factor = _factor;
+		
+		__INIT = true;
+		return true;
+	}
+	
+	static getHeightmap = function() {
+		if !__INIT return undefined;
+		
+		if !surface_exists(heightmap.texture) {
+			heightmap.texture = surface_create(heightmap.size, heightmap.size, surface_rgba32float);
+			var _shader = GMParty_shd_heightfield_init;
+			gpu_push_state();
+			gpu_set_tex_filter(true);
+			gpu_set_blendmode_ext_sepalpha(bm_one, bm_zero, bm_one, bm_zero);
+			UTILS.shaderPush(_shader);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpTexsize"), heightmap.size, heightmap.size);
+			shader_set_uniform_f(shader_get_uniform(_shader, "ugmpFactor"), heightmap.factor);
+			surface_set_target(heightmap.texture);
+			draw_sprite_stretched(heightmap.target, 0, 0, 0, heightmap.size, heightmap.size);
+			surface_reset_target();
+			UTILS.shaderPop();
+			gpu_pop_state();
+		}
+		
+		return heightmap.texture;
+	}
+	
+	static flush = function() {
+		if surface_exists(heightmap.texture) {
+			surface_free(heightmap.texture);
+		}
+	}
+	static free = function() {
+		if !__INIT return false;
+		flush();
+		delete heightmap;
+		__INIT = false;
+		return true;
+	}
+}
+
+//------------------------------------------------------------//
+// Texture emitter
+//------------------------------------------------------------//
+/// Creates a texture emitter resource out of GMSprite asset.
+/// @arg {Asset.GMSprite} _sprite
+/// @return {Struct.GMPartyTextureEmitter}
+function gmpartyTextureEmitterCreate(_sprite) {
+	var _tex = new GMPartyTextureEmitter();
+	if _tex.bake(_sprite) == false {
+		return undefined;
+	}
+	return _tex;
+}
+/// Frees a texture emitter resource from memory.
+/// @arg {Struct.GMPartyTextureEmitter} _texemitter
+/// @return {Bool}
+function gmpartyTextureEmitterFree(_texemitter) {
+	return _texemitter.free();
+}
+
+function GMPartyTextureEmitter() constructor {
+	static UTILS = gmpartyUtils();
+	__INIT = false;
+	
+	emitter = {
+		target: -1,
+		texture: -1,
+		width: 0,
+		height: 0,
+		emitters: 0
+	}
+	
+	static bake = function(_sprite) {
+		if __INIT return false;
+		
+		emitter.target = _sprite;
+		emitter.width = sprite_get_width(_sprite);
+		emitter.height = sprite_get_height(_sprite);
+		
+		__INIT = true;
+		return true;
+	}
+	static getEmitter = function() {
+		if !__INIT return undefined;
+		
+		if !surface_exists(emitter.texture) {
+			emitter.texture = surface_create(emitter.width, emitter.height, surface_rgba32float);
+			gpu_push_state();
+			var _shader = GMParty_shd_passthrough;
+			UTILS.shaderPush(_shader);
+			gpu_set_blendmode_ext_sepalpha(bm_one, bm_zero, bm_one, bm_zero);
+			surface_set_target(emitter.texture);
+			draw_sprite(emitter.target, 0, sprite_get_xoffset(emitter.target), sprite_get_yoffset(emitter.target));
+			surface_reset_target();
+			UTILS.shaderPop();
+			gpu_pop_state();
+			var _seeds = UTILS.textureEmitterSeed(emitter.texture);
+			emitter.emitters = _seeds;
+		}
+		
+		return emitter.texture;
+	}
+	static flush = function() {
+		if surface_exists(emitter.texture) {
+			surface_free(emitter.texture);
+		}
+	}
+	static free = function() {
+		if !__INIT return false;
+		flush();
+		delete emitter;
+		__INIT = false;
+		return true;
+	}
+}
+
 

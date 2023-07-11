@@ -311,8 +311,36 @@ function gmpartyUtils() {
 			}
 		},
 		//------------------------------------------------------------//
+		// Texture seeding
+		textureEmitterSeed : function(_surf) {
+			static __seed_tex2d = external_define(
+				GMPARTY_UTILS_SDF3D_PATH,
+				"seed_texture_emitter",
+				dll_cdecl,
+				ty_real,
+				3,
+				ty_string,
+				ty_real,
+				ty_real
+			);
+			var _width = surface_get_width(_surf),
+				_height = surface_get_height(_surf),
+				_usize = _width * _height * 4 * 4;
+			var _target = buffer_create(_usize, buffer_fixed, 1);
+			buffer_get_surface(_target, _surf, 0);
+			var _seeded = external_call(__seed_tex2d, string(buffer_get_address(_target)), _width, _height);
+			
+			if _seeded > 0 {
+				buffer_set_surface(_target, _surf, 0);
+			}
+			
+			buffer_delete(_target);
+			
+			return _seeded;
+		},
+		//------------------------------------------------------------//
 		// SDF3D
-		sdf3dCreate : function(_vbuffer, _vformat_array, _texsize, _wrt = true) {
+		sdf3dCreate : function(_vbuffer, _vformat_array, _texsize, _wrt=true) {
 			static __seed_buffer = external_define(
 				GMPARTY_UTILS_SDF3D_PATH,
 				"seed_buffer",

@@ -430,3 +430,33 @@ pub extern "cdecl" fn seed_buffer(
 
     result as f64
 }
+
+#[no_mangle]
+pub extern "cdecl" fn seed_texture_emitter(ptr: *const c_char, twidth: f64, theight: f64) -> f64 {
+    let c_str: &CStr = unsafe { CStr::from_ptr(ptr) };
+    let hex_string: &str = c_str.to_str().unwrap();
+    let rawhandle: i64 = i64::from_str_radix(hex_string, 16).unwrap();
+
+    let size = (twidth * theight * 4.0) as usize;
+
+    let buffer: &mut [f32] = unsafe { std::slice::from_raw_parts_mut(rawhandle as *mut f32, size) };
+
+    let pixel_total = size / 4;
+    let mut pixel_seeded = 0;
+
+    //println!("PIXEL TOTAL: {}, BUFFER: {:?}", pixel_total, buffer);
+
+    for i in 0..pixel_total {
+        //println!("ID: {}, VALUE: {}", i, buffer[i * 4 + 3]);
+        if buffer[i * 4 + 3] > 0.0 {
+            buffer[pixel_seeded * 4] = (i % twidth as usize) as f32;
+            buffer[pixel_seeded * 4 + 1] = (i / twidth as usize) as f32;
+            buffer[pixel_seeded * 4 + 2] = i as f32;
+            pixel_seeded += 1;
+        }
+    }
+
+    println!("donezo");
+
+    pixel_seeded as f64
+}
