@@ -11,5 +11,6 @@
 - [Colliders](dev/colliders.md)
 - [Effectors](dev/effectors.md)
 - [SDF3D](dev/sdfs.md)
+- [Texture Emitters](dev/texemitters.md)
 - [Hooks](dev/hooks.md)
 - [Utilities](dev/utils.md)

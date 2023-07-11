@@ -121,5 +121,5 @@ if is_undefined(model_sdf) {
 ---
 <- [Effectors](effectors.md)
 
--> [Hooks](hooks.md)
+-> [Texture Emitters](texemitters.md)
 

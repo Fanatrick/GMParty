@@ -33,6 +33,6 @@ Party ships with `GMParty/hooks` directory. This directory consists of:
 - Overridden functions are saved and exposed globally with a `GM_` prefix added to them (ie. `GM_part_system_create()` is correct).
 
 ---
-<- [SDF3D](sdfs.md)
+<- [Texture Emitters](texemitters.md)
 
 -> [Utilities](utils.md)

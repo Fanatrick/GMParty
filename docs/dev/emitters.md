@@ -27,6 +27,8 @@ Variant | Description
 `Sphere` | Emission occurs inside a sphere.
 `Line` | Emission occurs on a line.
 `Model` | Emission occurs inside a 3d model.
+`Sprite` | Emission occurs inside a 2d sprite resource.
+
 
 `enum e_gmpartyEmitFire`
 Variants control the firing direction during emission.
@@ -47,19 +49,21 @@ Variable | Type | Default | Description
 `emitFire` | `{Enum.e_gmpartyEmitFire}` | `e_gmpartyEmitFire.Absolute` | Emission firing vector variant.
 `seed` | `{Real}` | `gmpartyUtils().lcgRandomInt();` | Randomized seed used during the emission event.
 
-These two fields additionally describe emitter rotation and range.
+These two fields additionally describe emitter rotation, scaling and range.
 
 Field | Value | Default | Description
 --- | --- | --- | --------
 `emitRot` | `yaw` | 0.0 | Yaw component of 3d rotation in degrees.
-- | `pitch` | 0.0 | Pitch component of 3d rotation in degrees.
-- | `roll` | 0.0 | Roll component of 3d rotation in degrees.
+/ | `pitch` | 0.0 | Pitch component of 3d rotation in degrees.
+/ | `roll` | 0.0 | Roll component of 3d rotation in degrees.
 `emitRange` | `min` | 0.0 | Min emission range.
-- | `max` | 1.0 | Max emission range.
+/ | `max` | 1.0 | Max emission range.
+`emitScale` | - | `[1.0, 1.0, 1.0]` | A 3-component array describing scaling.
+`emitOffset` | - | `[0.0, 0.0, 0.0]` | A 3-component array describing offsets.
 
 ## emitTarget
 
-Finally, there's a special field that accepts references to emitter objects. Some emitter variants like `Model` requires additional data, this value points the solver to this data during emission.
+Finally, there's a special field that accepts references to emitter objects. Some emitter variants like `Model` and `Sprite` require additional data, this value points the solver to this data during emission.
 
 Variable | Type | Default | Description
 --- | --- | --- | --------
@@ -68,6 +72,7 @@ Variable | Type | Default | Description
 Type | Target | Description
 --- | --- | ------
 `e_gmpartyEmitShape.Model` | `{Struct.GMPartySDFModel}` | Requires a baked 3d SDF as input target.
+`e_gmpartyEmitShape.Sprite` | `{Struct.GMPartyTextureEmitter}` | Requires a seeded 2d texture as input target.
 
 ## Example
 ```js
