@@ -54,10 +54,10 @@ These two fields additionally describe emitter rotation, scaling and range.
 Field | Value | Default | Description
 --- | --- | --- | --------
 `emitRot` | `yaw` | 0.0 | Yaw component of 3d rotation in degrees.
-- | `pitch` | 0.0 | Pitch component of 3d rotation in degrees.
-- | `roll` | 0.0 | Roll component of 3d rotation in degrees.
+/ | `pitch` | 0.0 | Pitch component of 3d rotation in degrees.
+/ | `roll` | 0.0 | Roll component of 3d rotation in degrees.
 `emitRange` | `min` | 0.0 | Min emission range.
-- | `max` | 1.0 | Max emission range.
+/ | `max` | 1.0 | Max emission range.
 `emitScale` | - | `[1.0, 1.0, 1.0]` | A 3-component array describing scaling.
 `emitOffset` | - | `[0.0, 0.0, 0.0]` | A 3-component array describing offsets.
 
