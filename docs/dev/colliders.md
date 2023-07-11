@@ -14,6 +14,7 @@ Variant | Description
 `Pill` | Pill-shaped collider.
 `Texture2D` | Collider shape is defined by a 2d distance field.
 `TextureFaux3D` | Collider shape is defined by a 3d distance field.
+`Heightmap` | Collider shape is a 2d heightmap projected onto a 3d scene.
 
 ## Prototype
 `GMPartyColliderPrototype() constructor`
@@ -150,8 +151,55 @@ effector0 = new GMPartyEffectorCollider();
 // Add these components to the particle type (solvers will have their own component stack in the future)
 part.componentSet("some_component", effector0, collider0);
 part.componentSet("some_other_component", effector0, collider1);
-
 ```
+
+`GMPartyColliderHeightmap(height_data, x_start, y_start, z_start, x_len, y_len, z_len) : GMPartyColliderPrototype() constructor`
+This collider represents a 3d heightmap.
+Param | Type | Description
+--- | --- | --------
+`height_data` | `{Struct.GMPartyHeightmap}` | Precomputed heightmap data.
+`x_start` | `{Real}` | Starting X position.
+`y_start` | `{Real}` | Starting Y position.
+`z_start` | `{Real}` | Starting Z position.
+`x_len` | `{Real}` | X length.
+`y_len` | `{Real}` | Y length.
+`z_len` | `{Real}` | Z length.
+Returns | `{Struct.GMPartyHeightmap}` | Returns new `GMPartyHeightmap` collider reference.
+
+Heightmap colliders contain an extra rotation field.
+Variable | Type | Description
+--- | --- | --------
+`rotation` | `{Real}` | Rotation in degrees.
+
+Heightmap colliders use a simple create-free api.
+`gmpartyHeightmapCreate(sprite, texsize)`
+**Description:** Constructs `GMPartyHeightmap` object out of a sprite binding.
+Param| Type | Description
+--- | --- | --------
+`sprite` | `{Asset.GMSprite}` | Sprite index we want to turn into a heightmap collider.
+`texsize` | `{Real}` | Target texture size.
+Returns | `{Struct.GMPartyHeightmap}` | Reference to this collider.
+
+`gmpartyHeightmapFree(heightmap)`
+**Description:** Frees the heightmap collider and its resources from memory.
+Param| Type | Description
+--- | --- | --------
+`heightmap` | `{Struct.GMPartyHeightmap}` | Reference to a heightmap collider object being freed.
+Returns | `{Bool}` | Returns `true` on successful operation.
+
+## Example
+```js
+// Create a heightmap collider to serve as ground.
+heightmap = gmpartyHeightmapCreate(spr_heightmap, 4096);
+collider0 = new GMPartyColliderHeightmap(heightmap, -5000, -5000, 1000, 10000, 10000, -2500);
+
+// Create a collision effector to bind with our colliders
+effector0 = new GMPartyEffectorCollider();
+
+// Add collision component to the particle type
+part.componentSet("heightmap_collisions", effector0, collider0);
+```
+
 ---
 <- [Decorators](decorators.md)
 
