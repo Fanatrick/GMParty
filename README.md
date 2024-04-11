@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/12619098/248749415-43c0e26b-b813-4e5b-ab63-984ae1e68667.gif"/>
+  <img src="https://i.imgur.com/s0ZgmBX.gif"/>
 </p>
 
-# GMParty 0.8.5 (experimental)
+# GMParty 0.9.0 (experimental)
 **Party** is a modern, 3d particle system for GameMaker. It's simple to use, scalable, extensible, and offers high performance by leveraging the GPU. It can hook itself onto GameMaker's standard particle system, emulating it on the GPU while also providing the user with superpowers.
 
 *Party is currently experimental. Feel free to report issues and submit PRs.*
@@ -35,7 +35,7 @@
 
 ## Requirements
 
-- GameMaker version 2023.4 or above
+- GameMaker version 2023 up to 2023.800 BETA
 - Target platform needs to support:
   - **surface_rgba32float** surface format
   - Texture lookups for vertex shaders
