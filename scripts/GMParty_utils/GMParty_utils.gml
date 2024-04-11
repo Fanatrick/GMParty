@@ -517,6 +517,7 @@ function gmpartyUtils() {
 			}
 		},
 		texdataBakeSprite : function(_sprite) {
+			_sprite = asset_get_index(_sprite);
 			gpu_push_state();
 			gpu_set_tex_filter(false);
 			gpu_set_blendmode_ext(bm_one, bm_src_color);

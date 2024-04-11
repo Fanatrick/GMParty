@@ -288,6 +288,7 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	/// @arg {Asset.GMSprite} _spr
 	/// @arg {Real} _num
 	static addSpriteBinding = function(_spr, _num) {
+		_spr = sprite_get_name(_spr);
 		var _lookup = spriteMap[$ _spr];
 		if is_undefined(_lookup) {
 			spriteMap[$ _spr] = _num;
@@ -301,6 +302,7 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	/// @arg {Asset.GMSprite} _spr
 	/// @arg {Real} _num
 	static removeSpriteBinding = function(_spr, _num) {
+		_spr = sprite_get_name(_spr);
 		var _lookup = spriteMap[$ _spr];
 		if is_undefined(_lookup) return false;
 		var _total = _lookup - _num;
@@ -377,6 +379,52 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 	/// @arg {Real} _num
 	/// @arg {Struct} _emitter
 	static emit = function(_part, _num, _emitter = {}) {
+		// Shader uniforms
+		var _shader	= GMParty_shd_emit;
+		static uIndexOffset = shader_get_uniform(GMParty_shd_emit, "u_uIndexOffset");
+		static uIndexOffset = shader_get_uniform(GMParty_shd_emit, "u_uIndexOffset");
+		static uSize = shader_get_uniform(GMParty_shd_emit, "u_uSize");
+		static uIndexCount = shader_get_uniform(GMParty_shd_emit, "u_uIndexCount");
+		static uSeed = shader_get_uniform(GMParty_shd_emit, "u_uSeed");
+		static uParticleColor0 = shader_get_uniform(GMParty_shd_emit, "u_uParticleColor0");
+		static uParticleColor1 = shader_get_uniform(GMParty_shd_emit, "u_uParticleColor1");
+		static uParticleColor2 = shader_get_uniform(GMParty_shd_emit, "u_uParticleColor2");
+		static uParticleColor3 = shader_get_uniform(GMParty_shd_emit, "u_uParticleColor3");
+		static uParticlePosStart = shader_get_uniform(GMParty_shd_emit, "u_uParticlePosStart");
+		static uParticlePosEnd = shader_get_uniform(GMParty_shd_emit, "u_uParticlePosEnd");
+		static uParticleSize = shader_get_uniform(GMParty_shd_emit, "u_uParticleSize");
+		static uParticleOrientMin = shader_get_uniform(GMParty_shd_emit, "u_uParticleOrientMin");
+		static uParticleOrientMax = shader_get_uniform(GMParty_shd_emit, "u_uParticleOrientMax");
+		static uParticleOrientDeltaMin = shader_get_uniform(GMParty_shd_emit, "u_uParticleOrientDeltaMin");
+		static uParticleOrientDeltaMax = shader_get_uniform(GMParty_shd_emit, "u_uParticleOrientDeltaMax");
+		static uParticleOrientWiggle = shader_get_uniform(GMParty_shd_emit, "u_uParticleOrientWiggle");
+		static uParticleRotMin = shader_get_uniform(GMParty_shd_emit, "u_uParticleRotMin");
+		static uParticleRotMax = shader_get_uniform(GMParty_shd_emit, "u_uParticleRotMax");
+		static uParticleRotWiggle = shader_get_uniform(GMParty_shd_emit, "u_uParticleRotWiggle");
+		static uParticleDirMin = shader_get_uniform(GMParty_shd_emit, "u_uParticleDirMin");
+		static uParticleDirMax = shader_get_uniform(GMParty_shd_emit, "u_uParticleDirMax");
+		static uParticleSpeed = shader_get_uniform(GMParty_shd_emit, "u_uParticleSpeed");
+		static uParticleXScale = shader_get_uniform(GMParty_shd_emit, "u_uParticleXScale");
+		static uParticleYScale = shader_get_uniform(GMParty_shd_emit, "u_uParticleYScale");
+		static uParticleZScale = shader_get_uniform(GMParty_shd_emit, "u_uParticleZScale");
+		static uParticleImage = shader_get_uniform(GMParty_shd_emit, "u_uParticleImage");
+		static uParticleImageSpeed = shader_get_uniform(GMParty_shd_emit, "u_uParticleImageSpeed");
+		static uParticleBlendMode = shader_get_uniform(GMParty_shd_emit, "u_uParticleBlendMode");
+		static uParticleLife = shader_get_uniform(GMParty_shd_emit, "u_uParticleLife");
+		static uParticleMass = shader_get_uniform(GMParty_shd_emit, "u_uParticleMass");
+		static uParticleRestitution = shader_get_uniform(GMParty_shd_emit, "u_uParticleRestitution");
+		static uParticleGravity = shader_get_uniform(GMParty_shd_emit, "u_uParticleGravity");
+		static uParticleGravityNormal = shader_get_uniform(GMParty_shd_emit, "u_uParticleGravityNormal");
+		static uParticleFlags = shader_get_uniform(GMParty_shd_emit, "u_uParticleFlags");
+		static uEmitter = shader_get_uniform(GMParty_shd_emit, "u_uEmitter");
+		static uEmitterRange = shader_get_uniform(GMParty_shd_emit, "u_uEmitterRange");
+		static uEmitterTexture = shader_get_uniform(GMParty_shd_emit, "u_uEmitterTexture");
+		static uEmitterTextureSize = shader_get_uniform(GMParty_shd_emit, "u_uEmitterTextureSize");
+		static uEmitterTextureScale = shader_get_uniform(GMParty_shd_emit, "u_uEmitterTextureScale");
+		static uEmitterTextureOffset = shader_get_uniform(GMParty_shd_emit, "u_uEmitterTextureOffset");
+		static uEmitterRot = shader_get_uniform(GMParty_shd_emit, "u_uEmitterRot");
+		
+		
 		if (countOverflowSetting == e_gmpartyOverflow.Upscale) {
 			var _newcount = count + _num;
 			if (_newcount > getCountMax()) && (_newcount < GMPARTY_TEXTURE_INDEX_COUNT) {
@@ -394,97 +442,96 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		gpu_set_blendmode_ext_sepalpha(bm_one, bm_zero, bm_one, bm_zero);
 		gpu_set_tex_filter(false);
 		var _bid	= clamp(ceil(log2(_num)), 0, GMPARTY_EMIT_BUFFERS - 1),
-			_buff	= __vbufferWriteList[_bid],
-			_shader	= GMParty_shd_emit;
+			_buff	= __vbufferWriteList[_bid];
 		shader_set(_shader);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uIndexOffset"), countTell, getCountMax());
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uSize"), surfaceTexSize, surfaceSlotSize, GMPARTY_TEXTURE_GRID_SIZE);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uIndexCount"), _num);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uSeed"), _emitter[$"seed"] ?? _part.seed);
+		shader_set_uniform_f(uIndexOffset, countTell, getCountMax());
+		shader_set_uniform_f(uSize, surfaceTexSize, surfaceSlotSize, GMPARTY_TEXTURE_GRID_SIZE);
+		shader_set_uniform_f(uIndexCount, _num);
+		shader_set_uniform_f(uSeed, _emitter[$"seed"] ?? _part.seed);
 		var _ctx1, _ctx2, _ctx3, _ctx4;
 		_ctx1 = is_undefined(_emitter[$"color0"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"alpha0"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleColor0"), _ctx1.color0.min, _ctx1.color0.max, _ctx2.alpha0.min, _ctx2.alpha0.max);
+		shader_set_uniform_f(uParticleColor0, _ctx1.color0.min, _ctx1.color0.max, _ctx2.alpha0.min, _ctx2.alpha0.max);
 		_ctx1 = is_undefined(_emitter[$"color1"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"alpha1"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleColor1"), _ctx1.color1.min, _ctx1.color1.max, _ctx2.alpha1.min, _ctx2.alpha1.max);
+		shader_set_uniform_f(uParticleColor1, _ctx1.color1.min, _ctx1.color1.max, _ctx2.alpha1.min, _ctx2.alpha1.max);
 		_ctx1 = is_undefined(_emitter[$"color2"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"alpha2"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleColor2"), _ctx1.color2.min, _ctx1.color2.max, _ctx2.alpha2.min, _ctx2.alpha2.max);
+		shader_set_uniform_f(uParticleColor2, _ctx1.color2.min, _ctx1.color2.max, _ctx2.alpha2.min, _ctx2.alpha2.max);
 		_ctx1 = is_undefined(_emitter[$"color3"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"alpha3"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleColor3"), _ctx1.color3.min, _ctx1.color3.max, _ctx2.alpha3.min, _ctx2.alpha3.max);
+		shader_set_uniform_f(uParticleColor3, _ctx1.color3.min, _ctx1.color3.max, _ctx2.alpha3.min, _ctx2.alpha3.max);
 		_ctx1 = is_undefined(_emitter[$"xpos"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"ypos"]) ? _part : _emitter;
 		_ctx3 = is_undefined(_emitter[$"zpos"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticlePosStart"), _ctx1.xpos.min, _ctx2.ypos.min, _ctx3.zpos.min);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticlePosEnd"), _ctx1.xpos.max, _ctx2.ypos.max, _ctx3.zpos.max);
+		shader_set_uniform_f(uParticlePosStart, _ctx1.xpos.min, _ctx2.ypos.min, _ctx3.zpos.min);
+		shader_set_uniform_f(uParticlePosEnd, _ctx1.xpos.max, _ctx2.ypos.max, _ctx3.zpos.max);
 		_ctx1 = is_undefined(_emitter[$"size"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleSize"), _ctx1.size.min, _ctx1.size.max, _ctx1.size.delta, _ctx1.size.wiggle);
+		shader_set_uniform_f(uParticleSize, _ctx1.size.min, _ctx1.size.max, _ctx1.size.delta, _ctx1.size.wiggle);
 		_ctx1 = is_undefined(_emitter[$"xorient"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"yorient"]) ? _part : _emitter;
 		_ctx3 = is_undefined(_emitter[$"zorient"]) ? _part : _emitter;
 		_ctx4 = is_undefined(_emitter[$"snapToDirection"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleOrientMin"), _ctx1.xorient.min, _ctx2.yorient.min, _ctx3.zorient.min, _ctx4.snapToDirection);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleOrientMax"), _ctx1.xorient.max, _ctx2.yorient.max, _ctx3.zorient.max);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleOrientDeltaMin"), _ctx1.xorient.deltaMin, _ctx2.yorient.deltaMin, _ctx3.zorient.deltaMin);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleOrientDeltaMax"), _ctx1.xorient.deltaMax, _ctx2.yorient.deltaMax, _ctx3.zorient.deltaMax);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleOrientWiggle"), _ctx1.xorient.wiggle, _ctx2.yorient.wiggle, _ctx3.zorient.wiggle);
+		shader_set_uniform_f(uParticleOrientMin, _ctx1.xorient.min, _ctx2.yorient.min, _ctx3.zorient.min, _ctx4.snapToDirection);
+		shader_set_uniform_f(uParticleOrientMax, _ctx1.xorient.max, _ctx2.yorient.max, _ctx3.zorient.max);
+		shader_set_uniform_f(uParticleOrientDeltaMin, _ctx1.xorient.deltaMin, _ctx2.yorient.deltaMin, _ctx3.zorient.deltaMin);
+		shader_set_uniform_f(uParticleOrientDeltaMax, _ctx1.xorient.deltaMax, _ctx2.yorient.deltaMax, _ctx3.zorient.deltaMax);
+		shader_set_uniform_f(uParticleOrientWiggle, _ctx1.xorient.wiggle, _ctx2.yorient.wiggle, _ctx3.zorient.wiggle);
 		_ctx1 = is_undefined(_emitter[$"xrot"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"yrot"]) ? _part : _emitter;
 		_ctx3 = is_undefined(_emitter[$"zrot"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleRotMin"), _ctx1.xrot.min, _ctx2.yrot.min, _ctx3.zrot.min);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleRotMax"), _ctx1.xrot.max, _ctx2.yrot.max, _ctx3.zrot.max);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleRotWiggle"), _ctx1.xrot.wiggle, _ctx2.yrot.wiggle, _ctx3.zrot.wiggle);
+		shader_set_uniform_f(uParticleRotMin, _ctx1.xrot.min, _ctx2.yrot.min, _ctx3.zrot.min);
+		shader_set_uniform_f(uParticleRotMax, _ctx1.xrot.max, _ctx2.yrot.max, _ctx3.zrot.max);
+		shader_set_uniform_f(uParticleRotWiggle, _ctx1.xrot.wiggle, _ctx2.yrot.wiggle, _ctx3.zrot.wiggle);
 		_ctx1 = is_undefined(_emitter[$"xdir"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"ydir"]) ? _part : _emitter;
 		_ctx3 = is_undefined(_emitter[$"zdir"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleDirMin"), _ctx1.xdir.min, _ctx2.ydir.min, _ctx3.zdir.min);
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleDirMax"), _ctx1.xdir.max, _ctx2.ydir.max, _ctx3.zdir.max);
+		shader_set_uniform_f(uParticleDirMin, _ctx1.xdir.min, _ctx2.ydir.min, _ctx3.zdir.min);
+		shader_set_uniform_f(uParticleDirMax, _ctx1.xdir.max, _ctx2.ydir.max, _ctx3.zdir.max);
 		_ctx1 = is_undefined(_emitter[$"speed"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleSpeed"), _ctx1.speed.min, _ctx1.speed.max, _ctx1.speed.delta, _ctx1.speed.wiggle);
+		shader_set_uniform_f(uParticleSpeed, _ctx1.speed.min, _ctx1.speed.max, _ctx1.speed.delta, _ctx1.speed.wiggle);
 		_ctx1 = is_undefined(_emitter[$"xscale"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleXScale"), _ctx1.xscale.min, _ctx1.xscale.max, _ctx1.xscale.delta, _ctx1.xscale.wiggle);
+		shader_set_uniform_f(uParticleXScale, _ctx1.xscale.min, _ctx1.xscale.max, _ctx1.xscale.delta, _ctx1.xscale.wiggle);
 		_ctx1 = is_undefined(_emitter[$"yscale"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleYScale"), _ctx1.yscale.min, _ctx1.yscale.max, _ctx1.yscale.delta, _ctx1.yscale.wiggle);
+		shader_set_uniform_f(uParticleYScale, _ctx1.yscale.min, _ctx1.yscale.max, _ctx1.yscale.delta, _ctx1.yscale.wiggle);
 		_ctx1 = is_undefined(_emitter[$"zscale"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleZScale"), _ctx1.zscale.min, _ctx1.zscale.max, _ctx1.zscale.delta, _ctx1.zscale.wiggle);
+		shader_set_uniform_f(uParticleZScale, _ctx1.zscale.min, _ctx1.zscale.max, _ctx1.zscale.delta, _ctx1.zscale.wiggle);
 		_ctx1 = is_undefined(_emitter[$"image"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"sprite"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleImage"), _ctx1.image.min, _ctx1.image.max, _ctx1.image.count, _ctx2.sprite);
+		shader_set_uniform_f(uParticleImage, _ctx1.image.min, _ctx1.image.max, _ctx1.image.count, _ctx2.sprite);
 		_ctx1 = is_undefined(_emitter[$"imageSpeed"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleImageSpeed"), _ctx1.imageSpeed.min, _ctx1.imageSpeed.max, _ctx1.imageSpeed.lifetimeScale);
+		shader_set_uniform_f(uParticleImageSpeed, _ctx1.imageSpeed.min, _ctx1.imageSpeed.max, _ctx1.imageSpeed.lifetimeScale);
 		_ctx1 = is_undefined(_emitter[$"blendMode"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleBlendMode"), _ctx1.blendMode);
+		shader_set_uniform_f(uParticleBlendMode, _ctx1.blendMode);
 		
 		_ctx1 = is_undefined(_emitter[$"life"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleLife"), _ctx1.life.min, _ctx1.life.max, _part.index);
+		shader_set_uniform_f(uParticleLife, _ctx1.life.min, _ctx1.life.max, _part.index);
 		_ctx1 = is_undefined(_emitter[$"mass"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleMass"), _ctx1.mass.min, _ctx1.mass.max);
+		shader_set_uniform_f(uParticleMass, _ctx1.mass.min, _ctx1.mass.max);
 		_ctx1 = is_undefined(_emitter[$"restitution"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleRestitution"), _ctx1.restitution.min, _ctx1.restitution.max);
+		shader_set_uniform_f(uParticleRestitution, _ctx1.restitution.min, _ctx1.restitution.max);
 		_ctx1 = is_undefined(_emitter[$"gravityIntensity"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleGravity"), _ctx1.gravityIntensity.min, _ctx1.gravityIntensity.max);
+		shader_set_uniform_f(uParticleGravity, _ctx1.gravityIntensity.min, _ctx1.gravityIntensity.max);
 		_ctx1 = is_undefined(_emitter[$"gravityDirection"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uParticleGravityNormal"), _ctx1.gravityDirection.x, _ctx1.gravityDirection.y, _ctx1.gravityDirection.z);
+		shader_set_uniform_f(uParticleGravityNormal, _ctx1.gravityDirection.x, _ctx1.gravityDirection.y, _ctx1.gravityDirection.z);
 		
 		_ctx1 = is_undefined(_emitter[$"flags"]) ? _part : _emitter;
-		shader_set_uniform_i(shader_get_uniform(_shader, "u_uParticleFlags"), _ctx1.flags);
+		shader_set_uniform_i(uParticleFlags, _ctx1.flags);
 		_ctx1 = is_undefined(_emitter[$"emitType"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"emitDistribution"]) ? _part : _emitter;
 		_ctx3 = is_undefined(_emitter[$"emitColorMixing"]) ? _part : _emitter;
 		_ctx4 = is_undefined(_emitter[$"emitFire"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitter"), _ctx1.emitType, _ctx2.emitDistribution, _ctx3.emitColorMixing, _ctx4.emitFire);
+		shader_set_uniform_f(uEmitter, _ctx1.emitType, _ctx2.emitDistribution, _ctx3.emitColorMixing, _ctx4.emitFire);
 		_ctx1 = is_undefined(_emitter[$"emitRange"]) ? _part : _emitter;
-		shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterRange"), _ctx1.emitRange.min, _ctx1.emitRange.max);
+		shader_set_uniform_f(uEmitterRange, _ctx1.emitRange.min, _ctx1.emitRange.max);
 		_ctx1 = is_undefined(_emitter[$"emitTarget"]) ? _part : _emitter;
 		_ctx2 = is_undefined(_emitter[$"emitScale"]) ? _part : _emitter;
 		_ctx3 = is_undefined(_emitter[$"emitOffset"]) ? _part : _emitter;
 		if !is_undefined(_ctx1[$"emitTarget"]) {
 			texture_set_stage(shader_get_sampler_index(_shader, "u_uEmitterTexture"), surface_get_texture(_ctx1.emitTarget.getEmitter()) );
-			shader_set_uniform_f(shader_get_uniform(_shader, "u_uEmitterTextureSize"), _ctx1.emitTarget.emitter.width, _ctx1.emitTarget.emitter.height, _ctx1.emitTarget.emitter.emitters, 0);
-			shader_set_uniform_f_array(shader_get_uniform(_shader, "u_uEmitterTextureScale"), _ctx2.emitScale);
-			shader_set_uniform_f_array(shader_get_uniform(_shader, "u_uEmitterTextureOffset"), _ctx3.emitOffset);
+			shader_set_uniform_f(uEmitterTextureSize, _ctx1.emitTarget.emitter.width, _ctx1.emitTarget.emitter.height, _ctx1.emitTarget.emitter.emitters, 0);
+			shader_set_uniform_f_array(uEmitterTextureScale, _ctx2.emitScale);
+			shader_set_uniform_f_array(uEmitterTextureOffset, _ctx3.emitOffset);
 		}
 		_ctx1 = is_undefined(_emitter[$"emitRot"]) ? _part : _emitter;
 		var _sy = dsin(-_ctx1.emitRot.yaw),
@@ -501,7 +548,7 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 		];
 		matrix_stack_push(_mat);
 		matrix_set(matrix_world, matrix_stack_top());
-		shader_set_uniform_matrix(shader_get_uniform(_shader, "u_uEmitterRot"));
+		shader_set_uniform_matrix(uEmitterRot);
 		matrix_stack_pop();
 		matrix_set(matrix_world, matrix_stack_top());
 		
@@ -637,7 +684,7 @@ function GMPartySolver(_num=GMPARTY_DEFAULT_SOLVER_SIZE) constructor {
 			_len = array_length(_names);
 		var _tb = [];
 		for (var i = 0; i < _len; i++) {
-			_tb[i] = utils.texdataLookup(real(_names[i]));
+			_tb[i] = utils.texdataLookup(_names[i]);
 		}
 		return _tb;
 	}

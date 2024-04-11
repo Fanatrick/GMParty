@@ -385,7 +385,6 @@ pub extern "cdecl" fn seed_buffer(
     let max_alloc: f32 = (tsize * tsize) as f32;
 
     let total_voxels: i32 = discrete_x * discrete_y * discrete_z;
-    // let total_alloc: i32 = utils::pmin(total_voxels, max_alloc as i32);
 
     let compression_ratio: f32 = (max_alloc as f32 / total_voxels as f32).cbrt();
 
@@ -455,8 +454,6 @@ pub extern "cdecl" fn seed_texture_emitter(ptr: *const c_char, twidth: f64, thei
             pixel_seeded += 1;
         }
     }
-
-    println!("donezo");
 
     pixel_seeded as f64
 }
